@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>snow</title>
+<style type="text/css">
+  body {
+    background: linear-gradient(rgb(35, 22, 77), rgb(0, 0, 0)) fixed;
+  }
+  div.atnbox {
+    width:250px;
+    height:120px;
+    margin:5px;
+    padding:5px;
+    font-size: 13px;
+    color:rgb(179, 175, 175);
+    background-color:rgb(54, 53, 53);
+  }
+  div.atnbox .title {
+    font-weight: bolder;
+  }
+</style>
+</head>
+<body>
+  <div class="atnbox">
+    <span class="title">URLパラメタ</span><br />
+    i: 降雪間隔(msec)<br />
+    r: 猫割合(%)<br />
+    d: デバッグモード(開発コンソール)<br />
+    s: サンタ間隔(msec)<br />
+    例:snow.html?d=1&i=200&s=10000
+  </div>
+  <script src="snow.js"></script>
+</body>
+</html>

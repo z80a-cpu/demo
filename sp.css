@@ -1,0 +1,58 @@
+@charset "utf-8";
+
+body {
+  font-size: 14px;
+  position: relative;
+  -webkit-appearance: none;
+  -webkit-text-size-adjust: 100%;
+}
+
+.outer-block {
+  min-width: 320px;
+}
+
+.inner-block {
+  padding: 40px 15px;
+  width: auto;
+}
+
+#wrapper {
+  min-width: 320px;
+  position: relative;
+  overflow: hidden;
+}
+
+input[type="submit"] {
+  -webkit-text-size-adjust: 100%;
+}
+
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+.pc {
+  display: none !important;
+}
+.pc-ib {
+  display: none !important;
+}
+
+.sp {
+  display: block !important;
+}
+.sp-ib {
+  display: inline-block !important;
+}
+
+
+/*------------------------------------------------------------------------------
+  comment
+------------------------------------------------------------------------------*/
+
+.c-ttl01 {
+  font-size: 22px;
+}
+
+.c-ttl01 .large {
+  font-size: 30px;
+}

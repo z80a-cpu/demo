@@ -1,0 +1,799 @@
+@charset "utf-8";
+
+/*------------------------------------------------------------------------------
+  reset
+------------------------------------------------------------------------------*/
+
+html,
+input,
+textarea,
+select,
+button {
+  font-family: "游ゴシック体", YuGothic, "游ゴシック", "Yu Gothic", "メイリオ", Meiryo, sans-serif;
+  font-weight: 500;
+}
+
+/* IE10以降 游ゴシック文字ずれ対応 */
+html.ie10,
+.ie10 input,
+.ie10 textarea,
+.ie10 select,
+.ie10 button,
+html.ie11,
+.ie11 input,
+.ie11 textarea,
+.ie11 select,
+.ie11 button {
+  font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, sans-serif;
+  font-weight: normal;
+}
+
+html {
+  color: #333;
+  background: #fff;
+  font-size: 16px;
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+body {
+  background: #fff;
+  margin: 0;
+}
+
+*,
+*:before,
+*:after {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+img {
+  border: 0;
+  margin: 0;
+  vertical-align: top;
+  max-width: 100%;
+}
+
+p {
+  margin: 0;
+  padding: 0;
+}
+
+p:last-child {
+  margin-bottom: 0;
+}
+
+a {
+  color: #333;
+  text-decoration: none;
+}
+
+input[type="submit"],
+input[type="text"],
+select,
+textarea,
+button {
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  outline: none;
+}
+
+select::-ms-expand {
+  display: none;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+}
+
+label {
+  cursor: pointer;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+  padding: 0;
+}
+
+.outer-block {
+  min-width: 1040px;
+}
+
+.inner-block {
+  margin: 0 auto;
+  padding: 40px 0 100px;
+  position: relative;
+  width: 1000px;
+}
+
+#wrapper {
+  position: relative;
+}
+
+.pc {
+  display: block !important;
+}
+
+.pc-ib {
+  display: inline-block !important;
+}
+
+.sp {
+  display: none !important;
+}
+
+.sp-ib {
+  display: none !important;
+}
+
+@media screen and (min-width: 641px) {
+  a,
+  a:before,
+  a:after,
+  a img:hover,
+  button,
+  .pagenation .page-num-ul li:hover,
+  .pagenation .prev:hover,
+  .pagenation .next:hover,
+  .back-feature:hover {
+    -webkit-transition: 0.3s ease-in-out;
+    transition: 0.3s ease-in-out;
+  }
+
+}
+
+
+/*------------------------------------------------------------------------------
+  common
+------------------------------------------------------------------------------*/
+
+/* title */
+
+.c-ttl01 {
+  border-bottom: 3px solid #e97b21;
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 50px;
+  padding-bottom: 5px;
+}
+.c-ttl01 .large {
+  font-size: 38px;
+  color: #e97b21;
+  letter-spacing: -0.05em;
+}
+
+.c-ttl02 {
+  background: #fff9e6;
+  font-size: 20px;
+  font-weight: bold;
+  margin: 60px 0 30px;
+  padding: 10px;
+}
+
+.c-ttl03 {
+  font-size: 18px;
+  margin: 40px 0 10px;
+}
+
+.note {
+  color: #404040;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* もくじ */
+
+.contents-li {
+  border: 1px solid #fff1dc;
+  padding: 15px;
+  margin: 10px 0;
+}
+
+.contents-li li + li {
+  margin-top: 5px;
+}
+
+.contents-li li a {
+  color: #e97b21;
+}
+@media screen and (min-width: 641px) {
+  .contents-li li a:hover {
+    text-decoration: underline;
+  }
+}
+
+.pagetop {
+  border: 1px solid #ff701e;
+  color: #ff701e;
+  display: inline-block;
+  margin-top: 100px;
+  padding: 50px 20px 15px;
+  position: relative;
+  text-align: center;
+}
+.pagetop::before {
+  border: solid #ff701e;
+  border-width: 1px 0 0 1px;
+  content: "";
+  display: inline-block;
+  margin: auto;
+  position: absolute;
+  top: 25px;
+  left: 0;
+  right: 0;
+  -webkit-transform: rotate(45deg) translate3d(0, 0, 0);
+  transform: rotate(45deg) translate3d(0, 0, 0);
+  width: 20px;
+  height: 20px;
+}
+
+@media screen and (min-width: 641px) {
+  .pagetop:hover {
+    background: #fff8ef;
+  }
+}
+
+
+.iframe-wrap {
+  padding: 25px 15px;
+}
+
+
+/*------------------------------------------------------------------------------
+  anim
+------------------------------------------------------------------------------*/
+.c-btn,
+.c-bnr,
+.c-txt {
+  cursor: pointer;
+  transition: .3s cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.c-btn {
+  background: #ff701e;
+  border: 2px solid #ff701e;
+  border-radius: 60px;
+  color: #fff;
+  display: block;
+  font-weight: bold;
+  max-width: 300px;
+  padding: 15px 40px;
+  text-align: center;
+}
+
+.c-bnr {
+  background: url(../img/btn-bnr.jpg)no-repeat center center / cover;
+  display: inline-block;
+  width: 240px;
+  height: 240px;
+}
+
+.c-txt {
+  color: #ff701e;
+  display: inline-block;
+  font-size: 22px;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+}
+
+
+/*------------------------------------------------------------------------------
+  シンプル・分かりやすい・綺麗
+------------------------------------------------------------------------------*/
+/* 色反転 */
+.c-btn.reverse:hover {
+  background: #fff;
+  color: #ff701e;
+}
+
+/* 字間が広がる */
+.c-btn.letter-space:hover {
+  letter-spacing: 0.15em;
+}
+
+/* 浮き上がる */
+.c-btn.float:hover {
+  transform: translateY(-5px);
+}
+
+/* ズーム */
+.zoom-box {
+  display: inline-block;
+  overflow: hidden;
+}
+.c-bnr.zoom {
+  display: block;
+  transition-duration: .5s;
+}
+.c-bnr.zoom:hover {
+  transform: scale(1.2);
+}
+
+/* 色が付く */
+.c-bnr.bg {
+  position: relative;
+  overflow: hidden;
+}
+.c-bnr.bg::before,
+.c-bnr.bg::after {
+  content: "";
+  display: block;
+  position: absolute;
+  margin: auto;
+  top: 0;
+  left: 0;
+  margin: auto;
+  transition: .2s cubic-bezier(0.45, 0, 0.55, 1);
+  opacity: 0;
+}
+.c-bnr.bg::before {
+  background: rgba(190,91,70,.6);
+  width: 100%;
+  height: 100%;
+}
+.c-bnr.bg::after {
+  color: #fff;
+  content: "Read More";
+  font-size: 22px;
+  font-weight: bold;
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  bottom: 0;
+  right: 0;
+}
+.c-bnr.bg:hover::before,
+.c-bnr.bg:hover::after {
+  opacity: 1;
+}
+
+/*------------------------------------------------------------------------------
+  ポップ・勢いがいい
+------------------------------------------------------------------------------*/
+/* 押下 */
+.c-btn.press {
+  box-shadow: 0 4px 0 #d01a0a;/* ボタンの影 */
+}
+.c-btn.press:hover {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+/* スライド */
+.c-btn.slide {
+  background: #fff;
+  color: #ff701e;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+.c-btn.slide::after {
+  background: #ff701e;
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: '';
+  width: 100%;
+  height: 100%;
+  transform: scale(0, 1);
+  transform-origin: left top;
+  transition: .2s cubic-bezier(0.45, 0, 0.55, 1);
+  z-index: -1;
+}
+.c-btn.slide:hover {
+  color: #fff;
+}
+.c-btn.slide:hover::after {
+  transform: scale(1, 1);
+}
+
+/* スライド 斜め */
+.c-btn.slide.skew::after {
+  transform: skewY(-20deg) scale(1, 0);
+  height: 140px;
+}
+.c-btn.slide.skew:hover::after {
+  transform: skewY(-10deg) scale(1, 1);
+}
+
+/* 迫る */
+.c-btn.big {
+  transition-duration: .4s;
+}
+.c-btn.big:hover {
+  transform: scale(1.1);
+}
+
+
+/*------------------------------------------------------------------------------
+  スタイリッシュ・かっこいい・スピーディー
+------------------------------------------------------------------------------*/
+/* グラデーションが切り替わる */
+.c-btn.grad {
+  background: linear-gradient(90deg, rgba(255,112,30,1) 0%, rgba(255,191,48,1) 50%, rgba(255,77,48,1) 100%);
+  background-size: 200% 100%;
+  border: none;
+}
+.c-btn.grad:hover {
+  background-position: 100% 0;
+}
+
+/* ズレ */
+.c-btn.slip {
+  background: transparent;
+  border: none;
+  position: relative;
+  border-radius: 0;
+  z-index: 1;
+}
+.c-btn.slip::before,
+.c-btn.slip::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: auto;
+  transition: .2s cubic-bezier(0.45, 0, 0.55, 1);
+}
+.c-btn.slip::before {
+  background: #ffb509;
+  border: 2px solid #ffb509;
+  z-index: -1;
+}
+.c-btn.slip::after {
+  background: #fff6dc;
+  z-index: -2;
+}
+.c-btn.slip:hover {
+  color: #ffb509;
+}
+.c-btn.slip:hover::before {
+  background: transparent;
+}
+.c-btn.slip:hover::after {
+  top: 6px;
+  left: 6px;
+}
+
+/* 縮小 */
+.c-bnr.scale:hover {
+  box-shadow: 0px 0px 15px 2px rgba(0, 0, 0, 0.2);
+  transform: scale(0.9);
+}
+
+/* ラインが引かれる */
+.c-txt.line {
+  padding-bottom: 5px;
+  position: relative;
+}
+.c-txt.line::before {
+  background: #ff701e;
+  content: '';
+  width: 100%;
+  height: 2px;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  margin: auto;
+  transform-origin: right top;
+  transform: scale(0, 1);
+  transition: transform .3s;
+}
+.c-txt.line:hover::before {
+  transform-origin: left top;
+  transform: scale(1, 1);
+}
+
+.c-txt.line.center::before {
+  transform-origin: center top;
+}
+.c-txt.line.center:hover::before {
+  transform: scale(1, 1);
+}
+
+/* マーカー */
+.c-txt.marker {
+  position: relative;
+  z-index: 1;
+  padding: 0 10px;
+}
+.c-txt.marker::before {
+  background: #ff701e;
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  margin: auto;
+  transform: scale(0, 1);
+  transform-origin: right top;
+  transition: transform .3s;
+  z-index: -1;
+}
+.c-txt.marker:hover {
+  color: #fff;
+}
+.c-txt.marker:hover::before {
+  transform-origin: left top;
+  transform: scale(1, 1);
+}
+
+
+/*------------------------------------------------------------------------------
+  かわいい・柔らかい
+------------------------------------------------------------------------------*/
+/* 中央から背景色が変わる */
+.c-btn.circle {
+  background: #fff;
+  color: #ff701e;
+  overflow: hidden;
+  position: relative;
+  transition-duration: .4s;
+  z-index: 2;
+}
+.c-btn.circle::after {
+  background: #ff701e;
+  border-radius: 50%;
+  content: "";
+  display: block;
+  margin: auto;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding-top: 100%;
+  height: 0;
+  z-index: -1;
+  transform: translateY(-50%) scale(0.1);
+  transition: opacity .5s, transform 0s;
+  transition-delay: 0s, .4s;
+}
+
+.c-btn.circle:hover {
+  color: #fff;
+}
+.c-btn.circle:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.1);
+  transition-delay: 0s;
+  transition: opacity .8s, transform .6s ease-in-out;
+}
+
+/* ブラー */
+.c-bnr.blur,
+.c-bnr.blur::before {
+  transition: .4s cubic-bezier(0.45, 0, 0.55, 1);
+}
+.c-bnr.blur {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+.c-bnr.blur::before {
+  background: inherit;
+  content: "";
+  display: block;
+  filter: blur(2px);
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  z-index: -1;
+  opacity: 0;
+}
+.c-bnr.blur:hover {
+  box-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.2);
+}
+.c-bnr.blur:hover::before {
+  opacity: 1;
+}
+
+/* 丸くなる */
+.c-bnr.radius {
+  border-radius: 6px;
+  transition-duration: .5s;
+}
+.c-bnr.radius:hover {
+  border-radius: 50%;
+  box-shadow: 0px 0px 16px -6px rgba(0,0,0,0.6);
+}
+
+/* 【例01】字間 + 反転 */
+.c-btn.practice01 {
+  transition: .4s cubic-bezier(0.37, 0, 0.63, 1);
+}
+.c-btn.practice01:hover {
+  background: #fff;
+  color: #ff701e;
+  letter-spacing: 0.15em;
+}
+
+/* 【例02】迫る + 反転 */
+.c-btn.practice02 {
+  transition: .3s cubic-bezier(0.5, 1, 0.89, 1);
+}
+.c-btn.practice02:hover {
+  background: #fff;
+  color: #ff701e;
+  transform: scale(1.1);
+}
+
+/* 【例03】縮小 + 色がつく + テキスト[バナー] */
+.c-bnr.practice03 {
+  position: relative;
+  transition: .6s cubic-bezier(0.33, 1, 0.68, 1);
+}
+.c-bnr.practice03::before,
+.c-bnr.practice03::after {
+  content: "";
+  display: block;
+  position: absolute;
+  margin: auto;
+  top: 0;
+  left: 0;
+  margin: auto;
+  transition: .6s cubic-bezier(0.33, 1, 0.68, 1);
+  opacity: 0;
+}
+.c-bnr.practice03::before {
+  background: rgba(190,91,70,.6);
+  width: 100%;
+  height: 100%;
+}
+.c-bnr.practice03::after {
+  color: #fff;
+  content: "Read More";
+  font-size: 22px;
+  font-weight: bold;
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  bottom: 0;
+  right: 0;
+}
+.c-bnr.practice03:hover::before,
+.c-bnr.practice03:hover::after {
+  opacity: 1;
+}
+.c-bnr.practice03:hover::after {
+  letter-spacing: 0.1em;
+}
+.c-bnr.practice03:hover {
+  transform: scale(0.9);
+}
+
+/* 【例04】ブラー + テキスト[バナー] */
+.c-bnr.practice04,
+.c-bnr.practice04::before,
+.c-bnr.practice04::after {
+  transition-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+}
+.c-bnr.practice04 {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+.c-bnr.practice04::before,
+.c-bnr.practice04::after {
+  display: block;
+  opacity: 0;
+  position: absolute;
+}
+.c-bnr.practice04::before {
+  background: inherit;
+  content: "";
+  filter: blur(3px);
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  z-index: -1;
+  transition-duration: 0.4s;
+}
+.c-bnr.practice04::after {
+  color: #fff;
+  content: "Read More";
+  font-size: 22px;
+  font-weight: bold;
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transition-duration: 0.2s;
+}
+.c-bnr.practice04:hover::after {
+  transition-delay: .5s;
+}
+.c-bnr.practice04:hover::before,
+.c-bnr.practice04:hover::after {
+  opacity: 1;
+}
+
+/* 【例05】丸くなる + テキスト[バナー] */
+.c-bnr.practice05 {
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  transition-duration: .4s;
+}
+.c-bnr.practice05:hover {
+  border-radius: 50%;
+}
+.c-bnr.practice05::before,
+.c-bnr.practice05::after {
+  content: "";
+  display: block;
+  position: absolute;
+  margin: auto;
+  top: 0;
+  left: 0;
+  margin: auto;
+  transition: .6s cubic-bezier(0.33, 1, 0.68, 1);
+  opacity: 0;
+}
+.c-bnr.practice05::before {
+  background: rgba(190,91,70,.6);
+  width: 100%;
+  height: 100%;
+  transition-duration: 0.6s;
+}
+.c-bnr.practice05::after {
+  color: #fff;
+  content: "Read More";
+  font-size: 22px;
+  font-weight: bold;
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  bottom: 0;
+  right: 0;
+}
+.c-bnr.practice05:hover::before,
+.c-bnr.practice05:hover::after {
+  opacity: 1;
+}
+.c-bnr.practice05:hover::after {
+  transition-delay: 0.5s;
+}
