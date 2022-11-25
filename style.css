@@ -206,8 +206,30 @@ h6 {
   margin-top: 10px;
 }
 
-/* もくじ */
+/* 一般箇条書き */
+.tec-li {
+  padding: 10px;
+  margin: 10px 0;
+}
+.tec-li li a {
+  color: #e97b21;
+}
+span.tec-li-ttl {
+  font-weight: bold;
+}
+@media screen and (min-width: 641px) {
+  .tec-li li a:hover {
+    text-decoration: underline;
+  }
+}
+.tec-li ul {
+  margin-left: 10px;
+}
 
+
+
+
+/* もくじ */
 .contents-li {
   border: 1px solid #fff1dc;
   padding: 15px;
