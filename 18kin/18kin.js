@@ -424,7 +424,7 @@
     {
       // 指定URL以外無視する
       if (!this.checkUrl()) {
-        return;
+        // return;
       }
 
       this.getElements();
