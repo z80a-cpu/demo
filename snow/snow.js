@@ -1,8 +1,8 @@
 /**
  * Snow クリスマススノー
- * host:
+ * host: quora.com
  */
- (function() {
+(function() {
   // 最大降雪間隔(msec)
   // 降雪量目安 少なすぎ: 1300, 少ない: 1000, 標準: 700, 大雪: 400, 豪雪: 100
   let MAX_INTERVAL = 700;
@@ -19,91 +19,66 @@
   // デバッグモード
   let DEBUG_MODE = false;
 
-  // FPS
-  let fps = {
-    'start'  : undefined,
-    'frames' : 0,
-  };
-
-  // 結晶
-  let snow        = []; // 結晶オブジェクト配列
-  let snwStart    = 0;  // 前回追加timestamp
-  let snwInterval = 0;  // 表示開始間隔
-
-  // サンタ
-  let santaObj;
-
   /**
-   * 初期化
+   * 初期化クラス
    */
-  function init()
+  class Setup
   {
-    initParams();
-    initSvg();
+    static initParams()
+    {
+      // URLパラメタセット
+      const pairs = location.search.substring(1).split('&');
+      let args = [];
+      pairs.forEach((element) => {
+        const kv = element.split('=');
+        args[kv[0]] = kv[1];
+      });
 
-    // サンタ
-    santaObj = new Santa();
-  }
+      if ('c' in args) {
+        CAT_MODE = args['c'] === '1';
+      }
+      if ('i' in args) {
+        MAX_INTERVAL = Number(args['i']);
+      }
+      if ('r' in args) {
+        CAT_RATIO = Number(args['r']);
+      }
+      if ('d' in args) {
+        DEBUG_MODE = args['d'] === '1';
+      }
+      if ('s' in args) {
+        SANTA_INTERVAL = Number(args['s']);
+      }
+    }
 
-  /**
-   * URLパラメタセット
-   */
-  function initParams()
-  {
-    const pairs = location.search.substring(1).split('&');
-    let args = [];
-    pairs.forEach((element) => {
-      const kv = element.split('=');
-      args[kv[0]] = kv[1];
-    });
+    static initSvg()
+    {
+      // SVGひな型セット
+      let svg = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" style="width: 16px; height: 16px; opacity: 1; display: none;" xml:space="preserve">'
+      + '<symbol id="orgsnow" viewbox="0 0 512 512">'
+      + '<style type="text/css">'
+      + '.st0{fill:#4B4B4B;}'
+      + '</style>'
+      + '<g>'
+      + '<path class="st0" d="M458.071,306.273l-9.519-21.579l-65.885,29.07l-43.103-24.899l74.607-32.879l-74.589-32.87l43.085-24.863'
+      + ' l65.885,29.07l9.536-21.624l-50.088-22.103l76.363-44.053l-13.318-23.044l-76.362,44.08l5.917-54.422l-23.47-2.561l-7.782,71.576'
+      + ' l-43.085,24.89l8.83-81.022l-65.777,48.152V117.43l58.123-42.542l-13.934-19.055l-44.19,32.354V0h-26.6v88.187l-44.17-32.354'
+      + ' l-13.952,19.055l58.122,42.542v49.762l-65.777-48.134l8.795,80.995l-43.049-24.882l-7.799-71.576l-23.47,2.561l5.916,54.422'
+      + ' l-76.344-44.08l-13.318,23.044l76.363,44.053l-50.088,22.103l9.519,21.624l65.867-29.07l43.122,24.863l-74.59,32.888l24.501,10.803'
+      + ' l50.089,22.076l-43.104,24.882l-65.885-29.07l-9.536,21.579l50.106,22.112l-76.399,44.099l13.354,23.054l76.363-44.098'
+      + ' l-5.935,54.412l23.47,2.551l7.781-71.594l43.068-24.863l-8.813,81.013l65.794-48.151v49.771l-58.122,42.525l13.952,19.036'
+      + ' l44.17-32.328V512h26.6v-88.188l44.19,32.328l13.934-19.036l-58.123-42.542v-49.736l65.777,48.143l-8.812-81.022l43.067,24.863'
+      + ' l7.818,71.594l23.434-2.551l-5.9-54.412l76.345,44.098l13.318-23.054l-76.381-44.099L458.071,306.273z M156.385,256.004'
+      + ' l41.366-18.24l31.631,18.24l-31.612,18.268L156.385,256.004z M242.718,315.556l-36.534,26.727l4.904-44.958l31.63-18.267V315.556z'
+      + ' M242.718,232.942l-31.63-18.25l-4.904-44.967l36.534,26.718V232.942z M269.318,196.443l36.535-26.718l-4.922,44.967l-31.613,18.25'
+      + ' V196.443z M269.318,315.556v-36.498l31.613,18.267l4.922,44.958L269.318,315.556z M314.248,274.272l-31.612-18.268l31.631-18.24'
+      + ' l41.384,18.24L314.248,274.272z" style="fill: rgb(203, 205, 206);"></path>'
+      + '</g>'
+      + '</symbol>'
+      + '</svg>';
+      document.querySelector('body').insertAdjacentHTML('beforeend', svg);
 
-    if ('c' in args) {
-      CAT_MODE = args['c'] === '1';
-    }
-    if ('i' in args) {
-      MAX_INTERVAL = Number(args['i']);
-    }
-    if ('r' in args) {
-      CAT_RATIO = Number(args['r']);
-    }
-    if ('d' in args) {
-      DEBUG_MODE = args['d'] === '1';
-    }
-    if ('s' in args) {
-      SANTA_INTERVAL = Number(args['s']);
-    }
-  }
-
-  /**
-   * SVGひな型セット
-   */
-  function initSvg()
-  {
-    let svg = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" style="width: 16px; height: 16px; opacity: 1; display: none;" xml:space="preserve">'
-            + '<symbol id="orgsnow" viewbox="0 0 512 512">'
-            + '<style type="text/css">'
-            + '.st0{fill:#4B4B4B;}'
-            + '</style>'
-            + '<g>'
-            + '<path class="st0" d="M458.071,306.273l-9.519-21.579l-65.885,29.07l-43.103-24.899l74.607-32.879l-74.589-32.87l43.085-24.863'
-            + ' l65.885,29.07l9.536-21.624l-50.088-22.103l76.363-44.053l-13.318-23.044l-76.362,44.08l5.917-54.422l-23.47-2.561l-7.782,71.576'
-            + ' l-43.085,24.89l8.83-81.022l-65.777,48.152V117.43l58.123-42.542l-13.934-19.055l-44.19,32.354V0h-26.6v88.187l-44.17-32.354'
-            + ' l-13.952,19.055l58.122,42.542v49.762l-65.777-48.134l8.795,80.995l-43.049-24.882l-7.799-71.576l-23.47,2.561l5.916,54.422'
-            + ' l-76.344-44.08l-13.318,23.044l76.363,44.053l-50.088,22.103l9.519,21.624l65.867-29.07l43.122,24.863l-74.59,32.888l24.501,10.803'
-            + ' l50.089,22.076l-43.104,24.882l-65.885-29.07l-9.536,21.579l50.106,22.112l-76.399,44.099l13.354,23.054l76.363-44.098'
-            + ' l-5.935,54.412l23.47,2.551l7.781-71.594l43.068-24.863l-8.813,81.013l65.794-48.151v49.771l-58.122,42.525l13.952,19.036'
-            + ' l44.17-32.328V512h26.6v-88.188l44.19,32.328l13.934-19.036l-58.123-42.542v-49.736l65.777,48.143l-8.812-81.022l43.067,24.863'
-            + ' l7.818,71.594l23.434-2.551l-5.9-54.412l76.345,44.098l13.318-23.054l-76.381-44.099L458.071,306.273z M156.385,256.004'
-            + ' l41.366-18.24l31.631,18.24l-31.612,18.268L156.385,256.004z M242.718,315.556l-36.534,26.727l4.904-44.958l31.63-18.267V315.556z'
-            + ' M242.718,232.942l-31.63-18.25l-4.904-44.967l36.534,26.718V232.942z M269.318,196.443l36.535-26.718l-4.922,44.967l-31.613,18.25'
-            + ' V196.443z M269.318,315.556v-36.498l31.613,18.267l4.922,44.958L269.318,315.556z M314.248,274.272l-31.612-18.268l31.631-18.24'
-            + ' l41.384,18.24L314.248,274.272z" style="fill: rgb(203, 205, 206);"></path>'
-            + '</g>'
-            + '</symbol>'
-            + '</svg>';
-    document.querySelector('body').insertAdjacentHTML('beforeend', svg);
-
-    svg = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" style="width: 32px; height: 32px; opacity: 1; display: none;" xml:space="preserve">'
+      svg = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" style="width: 32px; height: 32px; opacity: 1; display: none;" xml:space="preserve">'
         + '<symbol id="orgcat" viewbox="0 0 512 512">'
         + '<style type="text/css">'
         + '.st0{fill:#4B4B4B;}'
@@ -135,9 +110,9 @@
         + '</g>'
         + '</symbol>'
         + '</svg>';
-    document.querySelector('body').insertAdjacentHTML('beforeend', svg);
+      document.querySelector('body').insertAdjacentHTML('beforeend', svg);
 
-    svg = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" style="width: 128px; height: 128px; opacity: 1; display: none;" xml:space="preserve">'
+      svg = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" style="width: 128px; height: 128px; opacity: 1; display: none;" xml:space="preserve">'
         + '<symbol id="orgcedar" viewbox="0 0 512 512">'
         + '<style type="text/css">'
         + '.st0{fill:#4B4B4B;}'
@@ -150,9 +125,9 @@
         + '</g>'
         + '</symbol>'
         + '</svg>';
-    document.querySelector('body').insertAdjacentHTML('beforeend', svg);
+      document.querySelector('body').insertAdjacentHTML('beforeend', svg);
 
-    svg = '<svg xmlns="http://www.w3.org/2000/svg" width="431.514" height="232.368" style="opacity: 1; display: none;">'
+      svg = '<svg xmlns="http://www.w3.org/2000/svg" width="431.514" height="232.368" style="opacity: 1; display: none;">'
         + '<symbol id="orgsanta" viewBox="0 0 431.514 232.368">'
         + '<style>.a{fill:#fff;}.b{fill:#231815;}.c{fill:#211715;}.d{fill:#f2635f;}.e{fill:none;}.f{fill:#211916;}.g{fill:#ad7b59;}.h{fill:#6dbf6b;}.i{fill:#f4b467;}</style>'
         + '<path class="a" d="M378.013,151.455q-6.567,1.7-13.18,3.258l-.046-1.828c-.06-2.45-.459-8.732-.52-11.182,0,0-.01-.419-.023-1.006,2.446-5.259,4.792-15.752,5.16-20.775.422-5.772.576-12.931-2.4-17.992a38.67,38.67,0,0,0-5.9-8.363c9.82-3.645,22.577-.241,31.411,5.671.616-3.617,3.566-8.03,7.1-10.454a1.527,1.527,0,0,1,1-.351,1.45,1.45,0,0,1,.672.316c3.276,2.362,5.524,6.109,7.759,9.1.172.231.329.548.085.736a.954.954,0,0,1-.409.138c-1.351.237-9.743,1.752-12.1,2.608l-.892.324a24.82,24.82,0,0,1,5.237,5.875c6.227,10.16,7.459,28.285,2.793,37.171a62.671,62.671,0,0,0-7.121,1.666Q387.415,149.007,378.013,151.455Z"/>'
@@ -235,9 +210,9 @@
         + '<path class="b" d="M85.24,124.9c9.118,4.619,19.253,7.214,29.215,9.261a306.935,306.935,0,0,0,41.33,5.328,381.642,381.642,0,0,0,47.033.347c15.094-.86,30.072-2.908,45.079-4.654,16.088-1.872,32.279-3.239,48.473-2.017,2.567.194,2.555-3.807,0-4-29.164-2.2-57.994,4-86.957,6.228a372.645,372.645,0,0,1-47.213.47,321.468,321.468,0,0,1-41.889-4.629c-11.2-2.053-22.828-4.609-33.052-9.788-2.291-1.16-4.318,2.29-2.019,3.454Z"/>'
         + '</symbol>'
         + '</svg>'
-    document.querySelector('body').insertAdjacentHTML('beforeend', svg);
+      document.querySelector('body').insertAdjacentHTML('beforeend', svg);
 
-    svg = '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
+      svg = '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
         + ' x="0px" y="0px" width="848px" height="535px" viewBox="0 0 848 535" enable-background="new 0 0 848 535"'
         + ' style="opacity: 1; display: none;" xml:space="preserve">'
         + '<image id="orgufo" width="431.514" height="232.368" x="0" y="0" href="data:image/png;base64,'
@@ -361,144 +336,147 @@
         + 'MS0xNVQwMjo1MTo0MiswMTowMDgWCLgAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjItMTEtMTVUMDI6'
         + 'NTE6NDIrMDE6MDBJS7AEAAAAAElFTkSuQmCC" />'
         + '</svg>';
-    document.querySelector('body').insertAdjacentHTML('beforeend', svg);
+      document.querySelector('body').insertAdjacentHTML('beforeend', svg);
+    }
   }
 
   /**
-   * 背景描写
+   * 背景クラス
    */
-  function dispBacks()
+  class BackGrounds
   {
-    const w = document.documentElement.clientWidth;
-    const h = document.documentElement.clientHeight;
+    static dispBacks()
+    {
+      const w = document.documentElement.clientWidth;
+      const h = document.documentElement.clientHeight;
 
-    // 家
-    let hx = Math.floor(Math.random() * (w - 430)) + 130;
-    hx = hx < 0 ? 0 : hx;
+      // 家
+      let hx = Math.floor(Math.random() * (w - 430)) + 130;
+      hx = hx < 0 ? 0 : hx;
 
-    const now   = new Date();
-    const hours = now.getHours();
-    let rgb   = '166, 159, 40';
-    if (hours < 3 || 23 <= hours) {
-      rgb = '234, 145, 152';
-    }
-    svg = '<svg version="1.1" id="house" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="512px" height="512px" viewBox="0 0 512 512"'
-        + ' style="width: 64px; height: 64px; left: ' + hx + 'px; top: ' + (h - 54) + 'px; opacity: 1; position: fixed; z-index: 297;" xml:space="preserve">'
-        + '<style type="text/css">'
-        + '.st0{fill:#4B4B4B;}'
-        + '</style>'
-        + '<g>'
-        + '<rect x="150" y="200" width="200" height="200" style="fill: rgb(' + rgb + ');"/>'
-        + '<path class="st0" d="M395.141,193.75V90.781h-47.703v55.266l-53.375-53.391L256,54.625l-38.063,38.031L0,310.609l38.063,38.063'
-        + ' l41.813-41.828v150.531h352.25V306.844l41.813,41.828L512,310.609L395.141,193.75z M245.578,396.719h-54.484v-54.5h54.484V396.719z'
-        + ' M245.578,321.063h-54.484v-54.5h54.484V321.063z M320.906,396.719h-54.484v-54.5h54.484V396.719z M320.906,321.063h-54.484v-54.5'
-        + ' h54.484V321.063z" style="fill: rgb(74, 51, 29);"></path>'
-        + '</g>'
-        + '</svg>';
-    document.querySelector('body').insertAdjacentHTML('beforeend', svg);
-
-    // 杉
-    const trees = Math.floor(w / 45);
-    for (i = 1; i < trees; i++) {
-      const id = ('000' + i).slice(-3);
-      let x;
-      while (x === undefined || ((hx - 50) <= x && x <= (hx + 40))) {
-        x = Math.floor(Math.random() * w) - 50;
+      const now   = new Date();
+      const hours = now.getHours();
+      let rgb   = '166, 159, 40';
+      if (hours < 3 || 23 <= hours) {
+        rgb = '234, 145, 152';
       }
-      const y = h - 100 + Math.floor(Math.random() * 50);
+      const svg = '<svg version="1.1" id="house" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="512px" height="512px" viewBox="0 0 512 512"'
+          + ' style="width: 64px; height: 64px; left: ' + hx + 'px; top: ' + (h - 54) + 'px; opacity: 1; position: fixed; z-index: 297;" xml:space="preserve">'
+          + '<style type="text/css">'
+          + '.st0{fill:#4B4B4B;}'
+          + '</style>'
+          + '<g>'
+          + '<rect x="150" y="200" width="200" height="200" style="fill: rgb(' + rgb + ');"/>'
+          + '<path class="st0" d="M395.141,193.75V90.781h-47.703v55.266l-53.375-53.391L256,54.625l-38.063,38.031L0,310.609l38.063,38.063'
+          + ' l41.813-41.828v150.531h352.25V306.844l41.813,41.828L512,310.609L395.141,193.75z M245.578,396.719h-54.484v-54.5h54.484V396.719z'
+          + ' M245.578,321.063h-54.484v-54.5h54.484V321.063z M320.906,396.719h-54.484v-54.5h54.484V396.719z M320.906,321.063h-54.484v-54.5'
+          + ' h54.484V321.063z" style="fill: rgb(74, 51, 29);"></path>'
+          + '</g>'
+          + '</svg>';
+      document.querySelector('body').insertAdjacentHTML('beforeend', svg);
 
-      document.querySelector('body').insertAdjacentHTML('beforeend',
-          '<svg id="cedar-' + id + '" viewBox="0 0 512 512"'
-        + ' style="width: ' + 100 + 'px; height: ' + 100 + 'px; opacity: 0.9; position: fixed; z-index: 297;'
-        + 'left: ' + x + 'px; top: ' + y + 'px; display: inline-block;">'
-        + '<use xlink:href="#orgcedar"></use>'
-        + '</svg>'
-      );
+      // 杉
+      const trees = Math.floor(w / 45);
+      for (let i = 1; i < trees; i++) {
+        const id = ('000' + i).slice(-3);
+        let x;
+        while (x === undefined || ((hx - 50) <= x && x <= (hx + 40))) {
+          x = Math.floor(Math.random() * w) - 50;
+        }
+        const y = h - 100 + Math.floor(Math.random() * 50);
+
+        document.querySelector('body').insertAdjacentHTML('beforeend',
+            '<svg id="cedar-' + id + '" viewBox="0 0 512 512"'
+          + ' style="width: ' + 100 + 'px; height: ' + 100 + 'px; opacity: 0.9; position: fixed; z-index: 297;'
+          + 'left: ' + x + 'px; top: ' + y + 'px; display: inline-block;">'
+          + '<use xlink:href="#orgcedar"></use>'
+          + '</svg>'
+        );
+      }
     }
   }
 
   /**
-   * ロゴ変更
+   * ロゴクラス
    */
-  function changeLogo()
+  class Logo
   {
-    let change = false;
-    const now  = new Date();
-    const min  = now.getMinutes();
-    if (String(min).slice(-1) === '2') {
-      change = true;
+    static changeLogo()
+    {
+      // 猫？
+      let change = false;
+      const now  = new Date();
+      const min  = now.getMinutes();
+      if (String(min).slice(-1) === '2') {
+        change = true;
+      }
+      change = CAT_MODE ? true : change;
+
+       // ロゴsvg取得
+       const logo = document.querySelector('a.SiteHeader___StyledLink-us2uvv-1');
+
+       if (!change) {
+        // パス追加
+        const path = logo.querySelector('svg g');
+        const svg = '<path style="fill: rgb(216, 216, 216);" d="M 4.691 35.223 C 6.254 32.759 11.501 30.58 15.884 30.58 C 21.337 28.154 25.885 24.887 31.731 29.069 C 31.502 28.738 41.117 29.513 43.973 33.638 C 45.32 34.446 49.402 43.421 46.583 45.73 C 46.183 47.429 34.554 44.323 32.152 39.164 C 27.558 41.333 20.637 39.28 16.702 40.271 L 3.779 44.698 C -0.145 42.445 2.071 37.319 4.691 35.223 Z" />'
+                  + '<path style="fill: rgb(216, 216, 216);" d="M 61.179 46.685 C 57.879 47.004 55.573 51.135 52.917 49.15 C 50.941 47.673 51.954 44.367 53.352 42.335 C 55.02 39.91 57.369 40.154 60.309 40.017 C 63.454 39.871 66.977 41.611 66.977 41.611 C 66.977 41.611 70.948 46.914 69.442 48.134 C 67.472 49.73 63.703 46.441 61.179 46.685 Z" />'
+                  + '<path style="fill: rgb(216, 216, 216);" d="M 74.08 43.206 C 75.833 40.771 79.783 40.706 82.778 40.886 C 86.155 41.089 89.925 41.341 90.605 44.655 C 90.894 46.061 88.847 46.886 87.417 46.829 C 84.679 46.72 83.968 46.271 81.039 46.395 C 78.955 46.483 76.047 49.086 74.37 47.844 C 73.125 46.922 73.175 44.463 74.08 43.206 Z" />'
+                  + '<path style="fill: rgb(216, 216, 216);" d="M 103.216 43.351 C 104.276 42.038 110.248 40.281 114.089 40.452 C 118.394 40.643 122.925 41.753 126.555 44.8 C 128.611 46.526 132.856 49.463 131.483 52.193 C 130.18 54.784 123.221 51.613 123.221 51.613 C 123.221 51.613 118.691 48.649 113.509 48.859 C 108.29 49.07 101.302 54.375 97.971 50.888 C 96.214 49.049 100.124 43.738 103.216 43.351 Z" />'
+                  + '<path style="fill: rgb(216, 216, 216);" d="M 132.498 44.075 C 132.608 41.634 137.028 41.011 139.456 40.741 C 141.566 40.506 144.564 42.693 148.298 43.205 C 151.344 43.623 153.976 40.755 156.851 40.742 C 160.138 40.727 163.747 41.837 165.258 44.51 C 166.048 45.908 165.965 48.331 164.679 49.294 C 162.797 50.703 160.072 48.141 157.721 48.134 C 154.98 48.126 152.323 47.872 150.183 49.584 C 148.964 50.56 150.619 53.223 147.719 53.208 C 144.819 53.193 144.966 51.244 142.935 49.004 C 141.147 47.032 138.524 48.534 136.122 47.99 C 134.231 47.562 132.328 47.864 132.498 44.075 Z" />'
+                  + '<path style="fill: rgb(216, 216, 216);" d="M 169.607 43.641 C 172.056 41.542 178.56 40.436 181.783 40.306 C 187.162 40.089 190.191 40.763 193.38 43.93 C 194.996 45.534 198.028 48.583 196.714 50.743 C 195.609 52.56 192.121 50.048 190.046 49.583 C 187.199 48.945 185.704 46.358 182.798 46.105 C 179.432 45.812 175.529 46.751 172.506 48.569 C 170.541 49.751 168.211 51.235 167.143 49.729 C 165.968 48.072 168.064 44.963 169.607 43.641 Z" />';
+        path.insertAdjacentHTML('beforeend', svg);
+
+        return;
+      }
+
+       // URL変更
+       logo.href = 'https://jp.quora.com/search?q=%E7%8C%AB&time=week';
+
+       // ロゴ変更
+       const path = logo.querySelector('svg g path');
+       path.setAttribute('d', 'M130 1139 c-58 -23 -114 -101 -126 -177 -21 -135 134 -244 427 -301 l94 -18 -3 -29 c-1 -16 -5 -77 -8 -136 -6 -107 -6 -108 -38 -127 -49 -31 -124 -112 -141 -155 -21 -50 -13 -134 16 -165 25 -27 64 -36 95 -22 33 14 30 38 -6 59 -61 35 -34 82 77 134 l84 40 53 -50 c80 -76 131 -96 177 -72 30 17 23 29 -35 54 -91 40 -90 50 11 160 101 111 101 111 267 104 129 -6 153 -15 212 -85 58 -69 58 -69 19 -93 -44 -27 -61 -56 -44 -76 26 -32 97 -8 144 48 25 29 27 37 21 88 l-7 55 54 -55 c39 -40 83 -70 153 -105 55 -28 139 -74 188 -103 111 -68 140 -78 172 -63 42 19 31 48 -30 75 -86 38 -196 106 -243 149 -52 48 -55 75 -14 152 16 30 31 60 33 67 4 10 13 9 42 -4 38 -19 84 -23 101 -10 18 13 55 102 55 132 0 24 6 32 34 44 50 21 52 33 6 41 -32 5 -38 10 -30 20 8 9 -5 14 -57 20 -138 17 -211 11 -296 -23 -43 -18 -91 -32 -106 -32 -35 0 -113 27 -212 74 -144 67 -288 70 -509 10 -85 -24 -108 -26 -215 -21 -140 6 -252 35 -340 88 -117 70 -128 132 -43 247 50 67 38 89 -32 61z');
+       path.setAttribute('transform', 'translate(0.000000,115.000000) scale(0.100000,-0.100000)');
+       path.setAttribute('stroke', 'red');
+
+       // ツールチップ
+       const ttcs = '<style type="text/css">'
+                  + '.cat-tooltips {'
+                  + '  display: block;'
+                  + '  position: absolute;'
+                  + '  bottom: -2.8em;'
+                  + '  left: 5em;'
+                  + '  z-index: 9999;'
+                  + '  width: auto;'
+                  + '  height: auto;'
+                  + '  padding: 0.3em 0.5em;'
+                  + '  color: #FFFFFF;'
+                  + '  background: #c72439;'
+                  + '  border-radius: 0.5em;'
+                  + '}'
+                  + '.cat-tooltips:after {'
+                  + '  width: 100%;'
+                  + '  content: "";'
+                  + '  display: block;'
+                  + '  position: absolute;'
+                  + '  left: 0.5em;'
+                  + '  top: -8px;'
+                  + '  border-top: 8px solid transparent;'
+                  + '  border-left: 8px solid #c72439;'
+                  + '}'
+                  + '</style>';
+       logo.insertAdjacentHTML('beforeend', ttcs);
+       logo.onmouseover = function() {
+         const element = document.createElement('div');
+         element.innerHTML = 'Quoranya!';
+         element.className = "cat-tooltips";
+         this.appendChild(element);
+       };
+       logo.onmouseout = function() {
+         this.removeChild(this.childNodes.item(this.childNodes.length - 1));
+       }
     }
-    change = CAT_MODE ? true : change;
+  }
 
-     // ロゴsvg取得
-     const logo = document.querySelector('a.SiteHeader___StyledLink-us2uvv-1');
-
-     // ロゴ描写前ならば少し待つ
-     if (logo === null) {
-       setTimeout(changeLogo, 100);
-       return;
-     }
-
-     if (!change) {
-      // パス追加
-      const path = logo.querySelector('svg g');
-      const svg = '<path style="fill: rgb(216, 216, 216);" d="M 4.691 35.223 C 6.254 32.759 11.501 30.58 15.884 30.58 C 21.337 28.154 25.885 24.887 31.731 29.069 C 31.502 28.738 41.117 29.513 43.973 33.638 C 45.32 34.446 49.402 43.421 46.583 45.73 C 46.183 47.429 34.554 44.323 32.152 39.164 C 27.558 41.333 20.637 39.28 16.702 40.271 L 3.779 44.698 C -0.145 42.445 2.071 37.319 4.691 35.223 Z" />'
-                + '<path style="fill: rgb(216, 216, 216);" d="M 61.179 46.685 C 57.879 47.004 55.573 51.135 52.917 49.15 C 50.941 47.673 51.954 44.367 53.352 42.335 C 55.02 39.91 57.369 40.154 60.309 40.017 C 63.454 39.871 66.977 41.611 66.977 41.611 C 66.977 41.611 70.948 46.914 69.442 48.134 C 67.472 49.73 63.703 46.441 61.179 46.685 Z" />'
-                + '<path style="fill: rgb(216, 216, 216);" d="M 74.08 43.206 C 75.833 40.771 79.783 40.706 82.778 40.886 C 86.155 41.089 89.925 41.341 90.605 44.655 C 90.894 46.061 88.847 46.886 87.417 46.829 C 84.679 46.72 83.968 46.271 81.039 46.395 C 78.955 46.483 76.047 49.086 74.37 47.844 C 73.125 46.922 73.175 44.463 74.08 43.206 Z" />'
-                + '<path style="fill: rgb(216, 216, 216);" d="M 103.216 43.351 C 104.276 42.038 110.248 40.281 114.089 40.452 C 118.394 40.643 122.925 41.753 126.555 44.8 C 128.611 46.526 132.856 49.463 131.483 52.193 C 130.18 54.784 123.221 51.613 123.221 51.613 C 123.221 51.613 118.691 48.649 113.509 48.859 C 108.29 49.07 101.302 54.375 97.971 50.888 C 96.214 49.049 100.124 43.738 103.216 43.351 Z" />'
-                + '<path style="fill: rgb(216, 216, 216);" d="M 132.498 44.075 C 132.608 41.634 137.028 41.011 139.456 40.741 C 141.566 40.506 144.564 42.693 148.298 43.205 C 151.344 43.623 153.976 40.755 156.851 40.742 C 160.138 40.727 163.747 41.837 165.258 44.51 C 166.048 45.908 165.965 48.331 164.679 49.294 C 162.797 50.703 160.072 48.141 157.721 48.134 C 154.98 48.126 152.323 47.872 150.183 49.584 C 148.964 50.56 150.619 53.223 147.719 53.208 C 144.819 53.193 144.966 51.244 142.935 49.004 C 141.147 47.032 138.524 48.534 136.122 47.99 C 134.231 47.562 132.328 47.864 132.498 44.075 Z" />'
-                + '<path style="fill: rgb(216, 216, 216);" d="M 169.607 43.641 C 172.056 41.542 178.56 40.436 181.783 40.306 C 187.162 40.089 190.191 40.763 193.38 43.93 C 194.996 45.534 198.028 48.583 196.714 50.743 C 195.609 52.56 192.121 50.048 190.046 49.583 C 187.199 48.945 185.704 46.358 182.798 46.105 C 179.432 45.812 175.529 46.751 172.506 48.569 C 170.541 49.751 168.211 51.235 167.143 49.729 C 165.968 48.072 168.064 44.963 169.607 43.641 Z" />';
-      path.insertAdjacentHTML('beforeend', svg);
-
-      return;
-    }
-
-     // URL変更
-     logo.href = 'https://jp.quora.com/search?q=%E7%8C%AB&time=week';
-
-     // ロゴ変更
-     const path = logo.querySelector('svg g path');
-     path.setAttribute('d', 'M130 1139 c-58 -23 -114 -101 -126 -177 -21 -135 134 -244 427 -301 l94 -18 -3 -29 c-1 -16 -5 -77 -8 -136 -6 -107 -6 -108 -38 -127 -49 -31 -124 -112 -141 -155 -21 -50 -13 -134 16 -165 25 -27 64 -36 95 -22 33 14 30 38 -6 59 -61 35 -34 82 77 134 l84 40 53 -50 c80 -76 131 -96 177 -72 30 17 23 29 -35 54 -91 40 -90 50 11 160 101 111 101 111 267 104 129 -6 153 -15 212 -85 58 -69 58 -69 19 -93 -44 -27 -61 -56 -44 -76 26 -32 97 -8 144 48 25 29 27 37 21 88 l-7 55 54 -55 c39 -40 83 -70 153 -105 55 -28 139 -74 188 -103 111 -68 140 -78 172 -63 42 19 31 48 -30 75 -86 38 -196 106 -243 149 -52 48 -55 75 -14 152 16 30 31 60 33 67 4 10 13 9 42 -4 38 -19 84 -23 101 -10 18 13 55 102 55 132 0 24 6 32 34 44 50 21 52 33 6 41 -32 5 -38 10 -30 20 8 9 -5 14 -57 20 -138 17 -211 11 -296 -23 -43 -18 -91 -32 -106 -32 -35 0 -113 27 -212 74 -144 67 -288 70 -509 10 -85 -24 -108 -26 -215 -21 -140 6 -252 35 -340 88 -117 70 -128 132 -43 247 50 67 38 89 -32 61z');
-     path.setAttribute('transform', 'translate(0.000000,115.000000) scale(0.100000,-0.100000)');
-     path.setAttribute('stroke', 'red');
-
-     // ツールチップ
-     const ttcs = '<style type="text/css">'
-                + '.cat-tooltips {'
-                + '  display: block;'
-                + '  position: absolute;'
-                + '  bottom: -2.8em;'
-                + '  left: 5em;'
-                + '  z-index: 9999;'
-                + '  width: auto;'
-                + '  height: auto;'
-                + '  padding: 0.3em 0.5em;'
-                + '  color: #FFFFFF;'
-                + '  background: #c72439;'
-                + '  border-radius: 0.5em;'
-                + '}'
-                + '.cat-tooltips:after {'
-                + '  width: 100%;'
-                + '  content: "";'
-                + '  display: block;'
-                + '  position: absolute;'
-                + '  left: 0.5em;'
-                + '  top: -8px;'
-                + '  border-top: 8px solid transparent;'
-                + '  border-left: 8px solid #c72439;'
-                + '}'
-                + '</style>';
-     logo.insertAdjacentHTML('beforeend', ttcs);
-     logo.onmouseover = function() {
-       const element = document.createElement('div');
-       element.innerHTML = 'Quoranya!';
-       element.className = "cat-tooltips";
-       this.appendChild(element);
-     };
-     logo.onmouseout = function() {
-       this.removeChild(this.childNodes.item(this.childNodes.length - 1));
-     }
-   }
 
   /**
    * 結晶クラス
@@ -538,7 +516,7 @@
     {
       // 結晶サイズ
       const base = this.mode === 'cat' ? 15 : 7; // ベースサイズ
-      const size  = Math.floor(Math.random() * base) + 10;
+      const size = Math.floor(Math.random() * base) + 10;
 
       // 元SVGのID
       let idName = this.mode === 'cat' ? 'orgcat' : 'orgsnow';
@@ -584,68 +562,84 @@
    */
   class Santa
   {
+    #id;
+    #interval;
+    #exist;
+    #start;
+    #x;
+    #y;
+    #speed;
+    #width;
+    #height
+
     constructor()
     {
-      this.id;
-      this.interval = SANTA_INTERVAL;
-      this.exist    = false;
-      this.start    = undefined;
-      this.x;
-      this.y;
-      this.speed = 2.5;
+      this.#id;
+      this.#interval = SANTA_INTERVAL;
+      this.#exist    = false;
+      this.#start    = undefined;
+      this.#x;
+      this.#y;
+      this.#speed = 2.5;
 
       // ブラウザ幅・高さ
-      this.width  = document.documentElement.clientWidth;
-      this.height = document.documentElement.clientHeight;
+      this.#width  = document.documentElement.clientWidth;
+      this.#height = document.documentElement.clientHeight;
     }
 
+    /**
+     * 初期設定
+     */
     init(timestamp)
     {
-      if (santaObj.exist) {
+      if (this.#exist) {
         return;
       }
 
       // サンタ位置設定
-      if (this.start === undefined || timestamp - this.start >= this.interval) {
-        this.exist = true;
-        this.x     = Math.floor(Math.random() * 2) === 1 ? -90 : this.width + 90;
-        this.speed = this.x <= 0 ? this.speed : -1 * this.speed;
-        this.y     = Math.floor(Math.random() * (this.height - 200)) + 100;
+      if (this.#start === undefined || timestamp - this.#start >= this.#interval) {
+        this.#exist = true;
+        this.#x     = Math.floor(Math.random() * 2) === 1 ? -90 : this.#width + 90;
+        this.#y     = Math.floor(Math.random() * (this.#height - 200)) + 100;
+        this.#speed = this.#x <= 0 ? this.#speed : -1 * this.#speed;
       }
 
       // 種別設定
-      this.id = Math.floor(Math.random() * 100) < 95 ? 'orgsanta' : 'orgufo';
+      this.#id = Math.floor(Math.random() * 100) < 95 ? 'orgsanta' : 'orgufo';
     }
 
+    /**
+     * 表示
+     */
     disp(timestamp)
     {
-      if (!santaObj.exist) {
+      if (!this.#exist) {
         return;
       }
 
       const svg = document.getElementById('santa');
       if (svg === null) {
         // 初期表示
-        const scale = this.speed > 0 ? -1 : 1;
+        const scale = this.#speed > 0 ? -1 : 1;
         document.querySelector('body').insertAdjacentHTML('beforeend',
             '<svg id="santa" viewBox="0 0 431.514 232.368"'
           + ' style="width: ' + 90 + 'px; height: ' + 45 + 'px; opacity: 1; position: fixed; z-index: 999;'
-          + 'left: ' + this.x + 'px; top: ' + this.y + 'px; display: inline-block; transform: scale(' + scale + ', 1);">'
-          + '<use xlink:href="#' + this.id + '"></use>'
+          + 'left: ' + this.#x + 'px; top: ' + this.#y + 'px; display: inline-block; transform: scale(' + scale + ', 1);">'
+          + '<use xlink:href="#' + this.#id + '"></use>'
           + '</svg>'
         );
       } else {
-        this.x   = this.x + this.speed;
-        const sy = this.y + Math.sin(this.x * Math.PI / 180) * 15;
+        this.#x  = this.#x + this.#speed;
+        const sy = this.#y + Math.sin(this.#x * Math.PI / 180) * 15;
 
-        if ((this.speed > 0 && this.x > this.width + 90) || (this.speed < 0 && this.x < -90)) {
+        if ((this.#speed > 0 && this.#x > this.#width + 90) || (this.#speed < 0 && this.#x < -90)) {
           // 画面外
-          this.exist = false;
+          this.#exist = false;
           svg.remove();
-          this.start = timestamp;
+          this.#start = timestamp;
 
         } else {
-          svg.style.left = Math.floor(this.x) + 'px';
+          svg.style.left = Math.floor(this.#x) + 'px';
           svg.style.top  = Math.floor(sy) + 'px';
         }
       }
@@ -653,63 +647,112 @@
   }
 
   /**
-   * 描写ループ
+   * 描写クラス
    */
-  function loop(timestamp) {
+  class Render
+  {
+    #snwStart;    // 結晶開始時間(timestamp)
+    #snwInterval; // 次回結晶追加までの間隔
+    #snows;       // 雪の結晶配列
+    #santa;       // サンタ
+    #fps;
 
-    // 結晶増やす
-    const snwElapsed = timestamp - snwStart;
-    if (snwStart === 0 || snwElapsed >= snwInterval) {
-      snwStart = timestamp;
-
-      // 次回結晶追加までの間隔
-      snwInterval = Math.floor(Math.random() * MAX_INTERVAL);
-
-      // 結晶増やす
-      snow.push(new Crystal(timestamp));
+    constructor()
+    {
+      this.#snwStart    = 0;
+      this.#snwInterval = 0;
+      this.#snows       = [];
+      this.#santa       = new Santa();
+      this.#fps = {
+        'start'  : undefined,
+        'frames' : 0,
+      };
     }
-    // 結晶svg描写
-    snow.forEach((element) => {
-      element.disp(timestamp);
-    });
-    // 画面外結晶オブジェクト削除
-    snow = snow.filter(element => element.exist);
 
-    // サンタ
-    santaObj.init(timestamp);
-    santaObj.disp(timestamp);
+    /**
+     * 結晶描写
+     */
+    dispCrystals(timestamp)
+    {
+      // 結晶増やす
+      if (this.#snwStart === 0 || timestamp - this.#snwStart >= this.#snwInterval) {
+        this.#snwStart = timestamp;
 
-    // FPS
-    fps.frames++;
-    fps.start = fps.start === undefined ? timestamp : fps.start;
-    const elapsed = timestamp - fps.start;
-    if(elapsed >= 1000) {
-      if (DEBUG_MODE) {
+        // 次回結晶追加までの間隔
+        this.#snwInterval = Math.floor(Math.random() * MAX_INTERVAL);
+
+        // 結晶増やす
+        this.#snows.push(new Crystal(timestamp));
+      }
+
+      // 結晶svg描写
+      this.#snows.forEach((element) => {
+        element.disp(timestamp);
+      });
+
+      // 画面外結晶オブジェクト削除
+      this.#snows = this.#snows.filter(element => element.exist);
+    }
+
+    /**
+     * サンタ描写
+     */
+    dispSanta(timestamp)
+    {
+      // サンタ
+      this.#santa.init(timestamp);
+      this.#santa.disp(timestamp);
+    }
+
+    /**
+     * FPS
+     */
+    dispFps(timestamp)
+    {
+      this.#fps.frames++;
+      this.#fps.start = this.#fps.start === undefined ? timestamp : this.#fps.start;
+      const elapsed = timestamp - this.#fps.start;
+      if(elapsed >= 1000) {
         console.log(timestamp + ', MAX_INTERVAL:' + MAX_INTERVAL + ', CAT_MODE:' + CAT_MODE
                     + ', CAT_RATIO:' + CAT_RATIO + ', SANTA_INTERVAL:' + SANTA_INTERVAL);
         console.log(
             'win(' + document.documentElement.clientWidth + ', '
-                   + document.documentElement.clientHeight + '), '
-          + 'FPS:' + fps.frames + ', snow cnt:' + snow.length
+                  + document.documentElement.clientHeight + '), '
+          + 'FPS:' + this.#fps.frames + ', snow cnt:' + this.#snows.length
         );
-      }
 
-      fps.frames = 0;
-      fps.start  = timestamp;
+        this.#fps.frames = 0;
+        this.#fps.start  = timestamp;
+      }
+    }
+  }
+
+  /**
+   * 描写ループ
+   */
+  function tick(timestamp)
+  {
+    RLP.dispCrystals(timestamp);
+    RLP.dispSanta(timestamp);
+
+    if (DEBUG_MODE) {
+      RLP.dispFps(timestamp);
     }
 
-    requestAnimationFrame(loop);
+    requestAnimationFrame(tick);
   }
 
   // 初期化
-  init();
+  Setup.initParams();
+  Setup.initSvg();
 
   // 背景描写
-  dispBacks();
+  BackGrounds.dispBacks();
 
   // ロゴ変更
-  // changeLogo();
+  // Logo.changeLogo();
 
-  // ループ開始
-  requestAnimationFrame(loop);
+  // 描写ループ開始
+  const RLP = new Render();
+  requestAnimationFrame(tick);
 }());
