@@ -1,8 +1,21 @@
 /**
  * browris ブラウリス
- * host:(any)
+ * host: (any)
  */
 (function() {
+  const BLOCK_SIZE = 16;
+  let COLS_COUNT;
+  let ROWS_COUNT;
+  let blksn = 0; // ブロック連番
+  const BLOCK_COLORS = [
+    '#9DCCE0',
+    '#FFFF00',
+    '#A757A8',
+    '#0000FF',
+    '#FFA500',
+    '#00FF00',
+    '#FF0000',
+  ];
 
   /**
    * セットアップ
@@ -11,7 +24,7 @@
   {
     static init()
     {
-      // モーダル追加
+      // 左モーダル
       let html = '<style type="text/css">'
                   + '.info-modal-window {'
                   + '  position:fixed;'
@@ -95,7 +108,9 @@
                   + '</div>';
       document.querySelector('body').insertAdjacentHTML('beforeend', html);
 
-      html = '<svg version="1.1" id="orgblock" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none;" viewBox="0 0 16 16" width="16px" height="16px">'
+      // ブロックsvg
+      html = '<svg version="1.1" id="orgblock" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
+           + ' style="display:none;" viewBox="0 0 16 16" width="16px" height="16px">'
            + '<defs>'
            + '<rect width="16" height="16"/>'
            + '</defs>'
@@ -151,6 +166,9 @@
 
     #field; // 描写フィールド
     #mino; // 落下中mino
+    #nextMino; // 次のmino
+
+    #timer; // タイマーID
 
     constructor()
     {
@@ -183,8 +201,8 @@
       this.drawAll();
 
       // 落下処理
-      clearInterval(this.timer);
-      this.timer = setInterval(() => this.dropMino(), this.#speed);
+      clearInterval(this.#timer);
+      this.#timer = setInterval(() => this.dropMino(), this.#speed);
 
       // キーボードイベントの登録
       this.setKeyEvent();
@@ -193,9 +211,9 @@
     // 新しいミノを読み込む
     popMino()
     {
-      this.mino = this.nextMino ?? new Mino()
-      this.mino.spawn()
-      this.nextMino = new Mino()
+      this.#mino = this.#nextMino ?? new Mino()
+      this.#mino.spawn()
+      this.#nextMino = new Mino()
 
       // ゲームオーバー判定
       if (!this.valid(0, 1)) {
@@ -208,30 +226,31 @@
     // 画面の描画
     drawAll()
     {
+      // TODO SVGとして物理タグを生成するのでクリアしない
       // 表示クリア
-      this.mainCtx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
-      this.nextCtx.clearRect(0, 0, NEXT_AREA_SIZE, NEXT_AREA_SIZE)
+      // this.mainCtx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+      // this.nextCtx.clearRect(0, 0, NEXT_AREA_SIZE, NEXT_AREA_SIZE)
 
       // 落下済みのミノを描画
-      this.#field.drawFixedBlocks(this.mainCtx)
+      // this.#field.drawFixedBlocks(this.mainCtx)
 
       // 再描画
-      this.nextMino.drawNext(this.nextCtx)
-      this.mino.draw(this.mainCtx)
+      this.#nextMino.drawNext()
+      this.#mino.draw()
     }
 
     // ミノの落下処理
     dropMino()
     {
       if (this.valid(0, 1)) {
-        this.mino.y++;
+        this.#mino.y++;
       } else {
         // Minoを固定する（座標変換してFieldに渡す）
-        this.mino.blocks.forEach(e => {
-          e.x += this.mino.x
-          e.y += this.mino.y
+        this.#mino.blocks.forEach(e => {
+          e.x += this.#mino.x
+          e.y += this.#mino.y
         })
-        this.#field.blocks = this.#field.blocks.concat(this.mino.blocks)
+        this.#field.blocks = this.#field.blocks.concat(this.#mino.blocks)
         this.#field.checkLine()
         this.popMino()
       }
@@ -241,7 +260,7 @@
     // 次の移動が可能かチェック
     valid(moveX, moveY, rot = 0)
     {
-      let newBlocks = this.mino.getNewBlocks(moveX, moveY, rot)
+      let newBlocks = this.#mino.getNewBlocks(moveX, moveY, rot)
       return newBlocks.every(block => {
         return (
           block.x >= 0 &&
@@ -260,16 +279,16 @@
         switch(e.keyCode)
         {
           case 37: // 左
-            if( this.valid(-1, 0)) this.mino.x--;
+            if( this.valid(-1, 0)) this.#mino.x--;
             break;
           case 39: // 右
-            if( this.valid(1, 0)) this.mino.x++;
+            if( this.valid(1, 0)) this.#mino.x++;
             break;
           case 40: // 下
-            if( this.valid(0, 1) ) this.mino.y++;
+            if( this.valid(0, 1) ) this.#mino.y++;
             break;
           case 32: // スペース
-            if( this.valid(0, 0, 1)) this.mino.rotate();
+            if( this.valid(0, 0, 1)) this.#mino.rotate();
             break;
         }
         this.drawAll()
@@ -286,6 +305,7 @@
     x;
     y;
     type;
+    id;
 
     // 基準地点からの座標
     // 移動中 ⇒ Minoの左上
@@ -294,6 +314,10 @@
     {
       this.x = x
       this.y = y
+
+      // ID(10桁連番)
+      blksn++;
+      this.id = ('0000000000' + blksn).slice(-10);
 
       // 描画しないときはタイプを指定しない
       if (type >= 0) {
@@ -304,34 +328,39 @@
     setType(type)
     {
       this.type = type
-      // TODO: svgに切り替え
-      this.image = Asset.blockImages[type]
+
+      // SVGタグ生成(描写前)
+      document.querySelector('body').insertAdjacentHTML('beforeend',
+          '<svg id="block-' + this.id + '" viewBox="0 0 16 16"'
+        + ' style="width: ' + BLOCK_SIZE + 'px; height: ' + BLOCK_SIZE + 'px;'
+        + ' opacity: 0; position: fixed; z-index: 10001; fill: ' + BLOCK_COLORS[this.type] + ';'
+        + ' left: ' + this.x + 'px; top: ' + this.y + 'px; display: none;">'
+        + '<use xlink:href="#orgblock"></use>'
+        + '</svg>'
+      );
+
     }
 
     // Minoに属するときは、Minoの位置をオフセットに指定
     // Fieldに属するときは、(0,0)を起点とするので不要
-    draw(offsetX = 0, offsetY = 0, ctx)
+    draw(offsetX = 0, offsetY = 0)
     {
       let drawX = this.x + offsetX
       let drawY = this.y + offsetY
 
       // 画面外は描画しない
-      if (drawX >= 0 && drawX < this.#cols &&
+      if (drawX >= 0 && drawX < COLS_COUNT &&
           drawY >= 0 && drawY < ROWS_COUNT) {
-        // TODO: svgに切り替え
-        ctx.drawImage(
-          this.image,
-          drawX * BLOCK_SIZE,
-          drawY * BLOCK_SIZE,
-          BLOCK_SIZE,
-          BLOCK_SIZE
-        )
+        const svg = document.getElementById('block-' + this.id);
+        svg.style.left    = Math.floor(drawX * BLOCK_SIZE) + 'px';
+        svg.style.top     = Math.floor(drawY * BLOCK_SIZE) + 'px';
+        // svg.style.display = 'inline-block';
       }
     }
 
     // 次のミノを描画する
     // タイプごとに余白を調整して、中央に表示
-    drawNext(ctx)
+    drawNext()
     {
       let offsetX = 0
       let offsetY = 0
@@ -351,13 +380,18 @@
       }
 
       // TODO: svgに切り替え
-      ctx.drawImage(
-        this.image,
-        (this.x + offsetX) * BLOCK_SIZE,
-        (this.y + offsetY) * BLOCK_SIZE,
-        BLOCK_SIZE,
-        BLOCK_SIZE
-      )
+      // ctx.drawImage(
+      //   this.image,
+      //   (this.x + offsetX) * BLOCK_SIZE,
+      //   (this.y + offsetY) * BLOCK_SIZE,
+      //   BLOCK_SIZE,
+      //   BLOCK_SIZE
+      // );
+
+      const svg = document.getElementById('block-' + this.id);
+      svg.style.left    = Math.floor(this.x + offsetX) + 'px';
+      svg.style.top     = Math.floor(this.y + offsetY) + 'px';
+      svg.style.display = 'inline-block';
     }
   }
 
@@ -401,12 +435,12 @@
     spawn()
     {
       // TODO: 横位置ランダムに
-      this.x = this.#cols / 2 - 2
+      this.x = COLS_COUNT / 2 - 2
       this.y = -3
     }
 
     // フィールドに描画する
-    draw(ctx)
+    draw()
     {
       this.blocks.forEach(block => {
         block.draw(this.x, this.y, ctx)
@@ -414,10 +448,10 @@
     }
 
     // 次のミノを描画する
-    drawNext(ctx)
+    drawNext()
     {
       this.blocks.forEach(block => {
-        block.drawNext(ctx)
+        block.drawNext()
       })
     }
 
