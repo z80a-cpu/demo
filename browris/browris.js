@@ -3,11 +3,12 @@
  * host: (any)
  */
 (function() {
-  let BLOCK_SIZE = 16;
-  let COLS_COUNT;
-  let ROWS_COUNT;
-  let SPPED = 500; // 落下スピード(ms)
-  let blksn = 0; // ブロック連番
+  let BLOCK_SIZE = 16; // ブロックサイズ(px)
+  let COLS_COUNT;      // 列ブロック数
+  let ROWS_COUNT;      // 行ブロック数
+  let SPPED = 500;     // 落下スピード(ms)
+  let blksn = 0;       // ブロック連番
+
   // ブロック色
   const BLOCK_COLORS = [
     '#9DCCE0', // I型
@@ -20,7 +21,7 @@
   ];
 
   /**
-   * セットアップ
+   * セットアップクラス
    */
   class Setup
   {
@@ -102,7 +103,7 @@
                   + '  <div class="content" tabindex="-1">'
                   + '    <div class="body">'
                   + '      <p>'
-                  + '      SP 回転<br />'
+                  + '      ↑ 回転<br />'
                   + '      ←↓→ 移動<br />'
                   + '      </p>'
                   + '    </div>'
@@ -147,14 +148,11 @@
     }
   }
 
+  /**
+   * ゲームクラス
+   */
   class Game
   {
-    // #field; // 描写フィールド
-    // #mino; // 落下中mino
-    // nextMino; // 次のmino
-
-    #timer; // タイマーID
-
     constructor()
     {
       // 初期化
@@ -179,8 +177,9 @@
       this.info = document.getElementById('info-modal');
     }
 
-
-    // ゲームの開始処理（STARTボタンクリック時）
+    /**
+     * ゲームの開始処理
+     */
     start()
     {
       // フィールドとミノの初期化
@@ -190,11 +189,11 @@
       this.popMino();
 
       // 初回描画
-      // this.drawAll();
+      this.mino.draw();
 
       // 落下処理
-      clearInterval(this.#timer);
-      this.#timer = setInterval(() => this.dropMino(), SPPED);
+      clearInterval(this.timer);
+      this.timer = setInterval(() => this.dropMino(), SPPED);
 
       // キーボードイベントの登録
       this.setKeyEvent();
@@ -213,9 +212,8 @@
 
       // ゲームオーバー判定
       if (!this.valid(0, 1)) {
-        clearInterval(this.#timer);
-        // alert('ゲームオーバー');
-        console.log('ゲームオーバー', this.#timer);
+        clearInterval(this.timer);
+        console.log('ゲームオーバー', this.timer);
       }
     }
 
@@ -262,29 +260,31 @@
       });
     }
 
-    // キーボードイベント
+    /**
+     * キーイベント
+     */
     setKeyEvent()
     {
-      // TODO: ボタン押しっぱを有効にする
-      document.onkeydown = function(e){
-      // document.onkeyup = function(e) {
+      document.onkeydown = function(e) {
         switch(e.keyCode)
         {
           case 37: // 左
-            if( this.valid(-1, 0)) this.mino.x--;
+            if(this.valid(-1, 0)) this.mino.x--;
             break;
           case 39: // 右
-            if( this.valid(1, 0)) this.mino.x++;
+            if(this.valid(1, 0)) this.mino.x++;
             break;
           case 40: // 下
-            if( this.valid(0, 1) ) this.mino.y++;
+            if(this.valid(0, 1)) this.mino.y++;
+            break;
+          case 38: // 上
+            if(this.valid(0, 0, 1)) this.mino.rotate();
             break;
           case 32: // スペース
-            if( this.valid(0, 0, 1)) this.mino.rotate();
+            if(this.valid(0, 0, 1)) this.mino.rotate();
             break;
         };
-        // this.drawAll();
-        e.preventDefault();
+        this.mino.draw();
       }.bind(this);
     }
   }
