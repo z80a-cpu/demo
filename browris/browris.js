@@ -8,6 +8,7 @@
   let BLOCK_NUM  =   0; // ブロック連番
   let COLS_COUNT;       // 列ブロック数
   let ROWS_COUNT;       // 行ブロック数
+  let CLEAR_LINES = 0;  // クリア行数
 
   // ブロック色
   const BLOCK_COLORS = [
@@ -25,104 +26,9 @@
    */
   class Setup
   {
-    static init()
-    {
-      // 左モーダル
-      let html = '<style type="text/css">'
-                  + '.info-modal-window {'
-                  + '  position:fixed;'
-                  + '  top:0;'
-                  + '  left:0;'
-                  + '  display:flex;'
-                  + '  justify-content:left;'
-                  + '  align-items:start;'
-                  + '  width:100vw;'
-                  + '  height:100vh;'
-                  + '  background-color:rgba(0, 0, 0, 0.7);'
-                  + '  backdrop-filter:blur(5px);'
-                  + '  z-index:10000;'
-                  + '}'
-                  + '.info-modal-window .content {'
-                  + '  position:relative;'
-                  + '  box-sizing:border-box;'
-                  + '  margin:5px;'
-                  + '  padding:5px;'
-                  + '  max-width:600px;'
-                  + '  color:#000000;'
-                  + '  background-color:#C7C7C7;'
-                  + '  text-align: center;'
-                  + '}'
-                  + '.info-modal-window .content .goaway {'
-                  + '  font-size:1.3rem;'
-                  + '  font-weight:bold;'
-                  + '}'
-                  + '.info-modal-window .content .good {'
-                  + '  margin-top:5px;'
-                  + '  font-size:1.3rem;'
-                  + '  font-weight:bold;'
-                  + '}'
-                  + '.info-modal-window .content .footer {'
-                  + '  display:flex;'
-                  + '  justify-content:space-between;'
-                  + '  margin-top:20px;'
-                  + '  justify-content:center;'
-                  + '}'
-                  + '.info-modal-window .content .footer .controls button {'
-                  + '  padding:calc(0.8rem + 0.12em) 1.2rem 0.8rem;'
-                  + '  background-color:#FEF8F8;'
-                  + '  font-size:1.2rem;'
-                  + '  color:#000000;'
-                  + '  border-radius:5px;'
-                  + '  transition:background-color 0.2s;'
-                  + '}'
-                  + '.info-modal-window .content .footer .controls button:nth-child(n+2) {'
-                  + '  margin-left:10px;'
-                  + '}'
-                  + '.info-modal-window .content .footer .controls button:hover,'
-                  + '.info-modal-window .content .footer .controls button:focus {'
-                  + '  background-color:#DCDCDC;'
-                  + '}'
-                  + '.info-modal-window .content .close {'
-                  + '  position:absolute;'
-                  + '  top:-10px;'
-                  + '  right:-10px;'
-                  + '  border-radius:50%;'
-                  + '  width:40px;'
-                  + '  height:40px;'
-                  + '  background:linear-gradient(#fff, #fff) 50% 50% / 3px 66% no-repeat, #333 linear-gradient(#fff, #fff) 50% 50% / 66% 3px no-repeat;'
-                  + '  font-size:0;'
-                  + '  transform:rotate(45deg);'
-                  + '  transition:background-color 0.2s;'
-                  + '}'
-                  + '.info-modal-window .content .close:hover,'
-                  + '.info-modal-window .content .close:focus {'
-                  + '  background-color:#444;'
-                  + '}'
-                  + '</style>'
-                  + '<div class="info-modal-window" id="info-modal" aria-labelledby="info-modal-title" aria-hidden="true">'
-                  + '  <div class="content" tabindex="-1">'
-                  + '    <div class="body">'
-                  + '      <p>'
-                  + '      ↑ 回転<br />'
-                  + '      ←↓→ 移動<br />'
-                  + '      </p>'
-                  + '    </div>'
-                  + '  </div>'
-                  + '</div>';
-      document.querySelector('body').insertAdjacentHTML('beforeend', html);
-
-      // ブロックsvg
-      html = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
-           + ' style="display:none;" width="16px" height="16px">'
-           + '<symbol id="orgblock" viewbox="0 0 16 16">'
-           + '<g>'
-           + '<rect x="0" y="0" width="16" height="16" />'
-           + '</g>'
-           + '</symbol>'
-           + '</svg>';
-      document.querySelector('body').insertAdjacentHTML('beforeend', html);
-    }
-
+    /**
+     * URLパラメタセット
+     */
     static initParams()
     {
       // URLパラメタセット
@@ -145,19 +51,6 @@
       if ('b' in args) {
         BLOCK_SIZE = parseInt(args['b']);
       }
-    }
-  }
-
-  /**
-   * ゲームクラス
-   */
-  class Game
-  {
-    constructor()
-    {
-      // 初期化
-      Setup.init();
-      Setup.initParams();
 
       // ブラウザ幅・高さ
       const width  = document.documentElement.clientWidth;
@@ -172,9 +65,84 @@
         ROWS_COUNT = Math.floor(height  / BLOCK_SIZE);
       }
       console.log('COLS_COUNT, ROWS_COUNT', COLS_COUNT, ROWS_COUNT);
+    }
 
-      // 情報モーダル
-      this.info = document.getElementById('info-modal');
+    /**
+     * 初期処理
+     */
+    static init()
+    {
+      // 左モーダル
+      let html = '<style type="text/css">'
+                  + '.info-modal-window {'
+                  + '  position:fixed;'
+                  + '  top:0;'
+                  + '  left:0;'
+                  + '  display:flex;'
+                  + '  justify-content:flex-end;'
+                  + '  align-items:start;'
+                  + '  width:100vw;'
+                  + '  height:100vh;'
+                  + '  background-color:rgba(0, 0, 0, 0.7);'
+                  + '  backdrop-filter:blur(5px);'
+                  + '  z-index:10000;'
+                  + '}'
+                  + '.info-modal-window .content {'
+                  + '  position:relative;'
+                  + '  box-sizing:border-box;'
+                  + '  margin:3px;'
+                  + '  padding:3px;'
+                  + '  color:#000000;'
+                  + '  background-color:#C7C7C7;'
+                  + '  text-align:right;'
+                  + '}'
+                  + '</style>'
+                  + '<div class="info-modal-window" id="info-modal" aria-hidden="true">'
+                  + '  <div class="content">'
+                  + '    <p>'
+                  + '    ' + COLS_COUNT + ' x ' + ROWS_COUNT + '<br />'
+                  + '    CLS:<span id="clear-lines">0</span>'
+                  + '    </p>'
+                  + '    <p id="next-block">'
+                  + '    </p>'
+                  + '  </div>'
+                  + '</div>'
+
+                  document.querySelector('body').insertAdjacentHTML('beforeend', html);
+
+      // ブロックSVG
+      html = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
+           + ' style="display:none;" width="16px" height="16px">'
+           + '<symbol id="orgblock" viewbox="0 0 16 16">'
+           + '<g>'
+           + '<rect x="0" y="0" width="16" height="16" />'
+           + '</g>'
+           + '</symbol>'
+           + '</svg>';
+      document.querySelector('body').insertAdjacentHTML('beforeend', html);
+
+      // 次ブロック背景SVG
+      html = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
+           + ' style="display:none;" width="16px" height="16px">'
+           + '<symbol id="orgbg" viewbox="0 0 16 16">'
+           + '<g>'
+           + '<rect x="0" y="0" width="16" height="16" />'
+           + '</g>'
+           + '</symbol>'
+           + '</svg>';
+      document.querySelector('body').insertAdjacentHTML('beforeend', html);
+    }
+  }
+
+  /**
+   * ゲームクラス
+   */
+  class Game
+  {
+    constructor()
+    {
+      Setup.initParams();
+      Setup.init();
     }
 
     /**
@@ -189,6 +157,8 @@
       this.popMino();
 
       // 初回描画
+      this.nextBg();
+      this.nextMino.drawNext();
       this.mino.draw();
 
       // 落下処理
@@ -199,7 +169,27 @@
       this.setKeyEvent();
     }
 
-    // 新しいミノを読み込む
+    /**
+     * 次ブロック背景
+     */
+    nextBg()
+    {
+      const w = 4.5 * BLOCK_SIZE;
+      const h = 4.5 * BLOCK_SIZE;
+
+      document.querySelector('body').insertAdjacentHTML('beforeend',
+          '<svg viewBox="0 0 ' + w + ' ' + h + '"'
+        + ' style="top: 5px; left: 5px; width: ' + w + 'px; height: ' + h + 'px;'
+        + ' opacity: 0.9; position: fixed; z-index: 10000; fill: #706D6D;'
+        + ' display: inline-block;">'
+        + '<use xlink:href="#orgbg"></use>'
+        + '</svg>'
+      );
+    }
+
+    /**
+     * 新しいミノを読み込む
+     */
     popMino()
     {
       console.log('Game.popMino');
@@ -217,15 +207,17 @@
       }
     }
 
-    // ミノの落下処理
+    /**
+     * ミノの落下処理
+     */
     dropMino()
     {
       console.log('Game.dropMino', this.mino);
 
       if (this.valid(0, 1)) {
         this.mino.y++;
-
         this.mino.draw();
+        this.nextMino.drawNext();
 
       } else {
         // Minoを固定する（座標変換してFieldに渡す）
@@ -324,7 +316,7 @@
       document.querySelector('body').insertAdjacentHTML('beforeend',
           '<svg id="block-' + this.id + '" viewBox="0 0 16 16"'
         + ' style="width: ' + BLOCK_SIZE + 'px; height: ' + BLOCK_SIZE + 'px;'
-        + ' opacity: 0.9; position: fixed; z-index: 10001; fill: ' + BLOCK_COLORS[this.type] + ';'
+        + ' opacity: 0.9; position: fixed; z-index: 10002; fill: ' + BLOCK_COLORS[this.type] + ';'
         + ' display: none;">'
         + '<use xlink:href="#orgblock"></use>'
         + '</svg>'
@@ -343,15 +335,18 @@
       let drawX = this.x + offsetX
       let drawY = this.y + offsetY
 
-      // 画面外は描画しない
       if (drawX >= 0 && drawX < COLS_COUNT &&
           drawY >= 0 && drawY < ROWS_COUNT) {
+        // 画面内
         this.svg.style.left    = Math.floor(drawX * BLOCK_SIZE) + 'px';
         this.svg.style.top     = Math.floor(drawY * BLOCK_SIZE) + 'px';
 
         if (this.svg.style.display == 'none') {
           this.svg.style.display = 'inline-block';
         }
+      } else {
+        // 画面外
+        this.svg.style.display = 'none';
       }
     }
 
@@ -400,8 +395,6 @@
   {
     constructor()
     {
-      console.log('Mino.constructor()');
-
       this.type = Math.floor(Math.random() * 7);
       this.initBlocks();
     }
@@ -411,7 +404,7 @@
      */
     initBlocks()
     {
-      let t = this.type
+      const t = this.type;
       switch (t) {
         case 0: // I型
           this.blocks = [new Block(0, 2, t), new Block(1, 2, t), new Block(2, 2, t), new Block(3, 2, t)];
@@ -462,6 +455,7 @@
      */
     drawNext()
     {
+      // TODO: 次ミノモーダルの位置を考慮
       this.blocks.forEach(block => {
         block.drawNext()
       })
@@ -522,7 +516,7 @@
     }
 
     /**
-     * svgタグの削除＆新座標セット
+     * SVGタグの削除＆新座標セット
      */
     checkLine()
     {
@@ -530,12 +524,16 @@
         const c = this.blocks.filter(block => block.y === r).length;
 
         if (c === COLS_COUNT) {
+          // SVG削除
           this.blocks.filter(block => {
             if (block.y == r) {
-              // SVG削除
               block.remove();
             }
           });
+
+          // クリア行数更新
+          CLEAR_LINES++;
+          this.updateInfo();
 
           // ブロックオブジェクト削除
           this.blocks = this.blocks.filter(block => block.y !== r);
@@ -547,6 +545,15 @@
           });
         }
       }
+    }
+
+    /**
+     * 情報モーダル更新
+     */
+    updateInfo()
+    {
+      const clearLines = document.getElementById('clear-lines');
+      clearLines.textContent = CLEAR_LINES.toLocaleString();
     }
 
     /**
