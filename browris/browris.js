@@ -3,11 +3,11 @@
  * host: (any)
  */
 (function() {
-  let BLOCK_SIZE = 16; // ブロックサイズ(px)
-  let COLS_COUNT;      // 列ブロック数
-  let ROWS_COUNT;      // 行ブロック数
-  let SPPED = 500;     // 落下スピード(ms)
-  let blksn = 0;       // ブロック連番
+  let BLOCK_SIZE =  16; // ブロックサイズ(px)
+  let SPPED      = 500; // 落下スピード(ms)
+  let BLOCK_NUM  =   0; // ブロック連番
+  let COLS_COUNT;       // 列ブロック数
+  let ROWS_COUNT;       // 行ブロック数
 
   // ブロック色
   const BLOCK_COLORS = [
@@ -303,9 +303,9 @@
       this.y = y;
 
       // ID(10桁連番)
-      blksn++;
-      blksn = blksn > 9999999999 ? 1 : blksn;
-      this.id = ('0000000000' + blksn).slice(-10);
+      BLOCK_NUM++;
+      BLOCK_NUM = BLOCK_NUM > 9999999999 ? 1 : BLOCK_NUM;
+      this.id = ('0000000000' + BLOCK_NUM).slice(-10);
 
       // 描画しないとき(ゲームオーバー判定時)はタイプを指定しない
       if (type >= 0) {
