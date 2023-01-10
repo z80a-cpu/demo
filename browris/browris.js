@@ -8,7 +8,7 @@
   let BLOCK_NUM  =   0; // ブロック連番
   let COLS_COUNT;       // 列ブロック数
   let ROWS_COUNT;       // 行ブロック数
-  let CLEAR_LINES = 0;  // クリア行数
+  let CLEAR_LINES =  0; // クリア行数
 
   // ブロック色
   const BLOCK_COLORS = [
@@ -72,7 +72,7 @@
      */
     static init()
     {
-      // 左モーダル
+      // 情報モーダル
       let html = '<style type="text/css">'
                   + '.info-modal-window {'
                   + '  position:fixed;'
@@ -90,7 +90,7 @@
                   + '.info-modal-window .content {'
                   + '  position:relative;'
                   + '  box-sizing:border-box;'
-                  + '  margin:3px;'
+                  + '  margin:5px;'
                   + '  padding:3px;'
                   + '  color:#000000;'
                   + '  background-color:#C7C7C7;'
@@ -101,14 +101,13 @@
                   + '  <div class="content">'
                   + '    <p>'
                   + '    ' + COLS_COUNT + ' x ' + ROWS_COUNT + '<br />'
-                  + '    CLS:<span id="clear-lines">0</span>'
+                  + '    CL:<span id="clear-lines">0</span>'
                   + '    </p>'
                   + '    <p id="next-block">'
                   + '    </p>'
                   + '  </div>'
-                  + '</div>'
-
-                  document.querySelector('body').insertAdjacentHTML('beforeend', html);
+                  + '</div>';
+      document.querySelector('body').insertAdjacentHTML('beforeend', html);
 
       // ブロックSVG
       html = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
@@ -177,6 +176,7 @@
       const w = 4.5 * BLOCK_SIZE;
       const h = 4.5 * BLOCK_SIZE;
 
+      // TODO: 右側に移動(スクロールバーを考慮する)
       document.querySelector('body').insertAdjacentHTML('beforeend',
           '<svg viewBox="0 0 ' + w + ' ' + h + '"'
         + ' style="top: 5px; left: 5px; width: ' + w + 'px; height: ' + h + 'px;'
@@ -355,6 +355,7 @@
      */
     drawNext()
     {
+      // TODO: ブラウザの幅(スクロールバーに注意)、次ミノ領域のマージンを考慮して基準位置を決める
       // タイプごとに余白を調整して、中央に表示
       let offsetX = 0
       let offsetY = 0
@@ -566,6 +567,6 @@
   }
 
   // ゲーム開始
-  const brwgame = new Game();
-  brwgame.start();
+  const brGame = new Game();
+  brGame.start();
 }());
