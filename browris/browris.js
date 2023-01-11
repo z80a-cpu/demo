@@ -69,7 +69,6 @@
       if ('a' in args) {
         AUTO_MODE = args['a'] === '1';
       }
-      console.log('c,r,s,b,e,a', COLS_COUNT, ROWS_COUNT, SPPED, BLOCK_SIZE, EX_MODE, AUTO_MODE);
 
       // ブラウザ幅・高さ
       const width  = document.documentElement.clientWidth;
@@ -83,7 +82,8 @@
       if (!ROWS_COUNT) {
         ROWS_COUNT = Math.floor(height  / BLOCK_SIZE);
       }
-      console.log('COLS_COUNT, ROWS_COUNT', COLS_COUNT, ROWS_COUNT);
+
+      console.log('c,r,s,b,e,a', COLS_COUNT, ROWS_COUNT, SPPED, BLOCK_SIZE, EX_MODE, AUTO_MODE);
 
       // 次ミノ表示座標
       NEXT_COORDINATE['x'] = width - 4.5 * BLOCK_SIZE - 10;
