@@ -29,7 +29,7 @@
     '#FF0000', // Z型
     // 拡張モード
     '#40E0D0', // U型
-    '#FF33FF', // II型
+    '#FF33FF', // V型
     '#FF99CC', // .型
   ];
 
@@ -115,14 +115,14 @@
                   + '  box-sizing:border-box;'
                   + '  margin:5px;'
                   + '  padding:3px;'
-                  + '  color:#000000;'
-                  + '  background-color:#C7C7C7;'
+                  + '  color:#090815;'
+                  + '  background-color:#706D6D;'
                   + '  text-align:right;'
                   + '}'
                   + '</style>'
                   + '<div class="info-modal-window" id="info-modal" aria-hidden="true">'
                   + '  <div class="content">'
-                  + '    ' + COLS_COUNT + ' x ' + ROWS_COUNT + '<br />'
+                  + '    ' + COLS_COUNT + 'x' + ROWS_COUNT + '<br />'
                   + '    CL:<span id="clear-lines">0</span>'
                   + '  </div>'
                   + '</div>';
@@ -161,6 +161,8 @@
     {
       Setup.initParams();
       Setup.init();
+
+      this.startTime = new Date();
     }
 
     /**
@@ -198,7 +200,7 @@
           '<svg viewBox="0 0 ' + nextSize + ' ' + nextSize + '"'
         + ' style="top: ' + NEXT_COORDINATE['y'] + 'px; left: ' + NEXT_COORDINATE['x'] + 'px;'
         + ' width: ' + nextSize + 'px; height: ' + nextSize + 'px;'
-        + ' opacity: 0.9; position: fixed; z-index: 10000; fill: #706D6D;'
+        + ' opacity: 1; position: fixed; z-index: 10000; fill: #706D6D;'
         + ' display: inline-block;">'
         + '<use xlink:href="#orgbg"></use>'
         + '</svg>'
@@ -218,10 +220,30 @@
 
       // ゲームオーバー判定
       if (!this.valid(0, 1)) {
-        clearInterval(this.timer);
-        console.log('ゲームオーバー', this.timer);
+        this.gameOver();
       }
     }
+
+    /**
+     * 終了処理
+     */
+    gameOver()
+    {
+      clearInterval(this.timer);
+
+      // 経過時間
+      const endTime = new Date();
+      const datet   = parseInt((endTime.getTime() - this.startTime.getTime()) / 1000);
+      const hour    = parseInt(datet / 3600);
+      const min     = parseInt((datet / 60) % 60);
+      const sec     = datet % 60;
+      const elapsed = hour + ':' + min + ':' + sec;
+      console.log('ゲームオーバー', elapsed);
+
+      // TODO: 終了処理(結果モーダル表示)
+
+    }
+
 
     /**
      * ミノの落下処理
@@ -259,7 +281,7 @@
 
       return newBlocks.every(block => {
         return (
-          block.x >= 0 &&
+          block.x >=  0 &&
           block.y >= -1 &&
           block.x < COLS_COUNT &&
           block.y < ROWS_COUNT &&
@@ -457,8 +479,8 @@
         case 7: // U型
           this.blocks = [new Block(0, 1, t), new Block(0, 2, t), new Block(1, 2, t), new Block(2, 2, t), new Block(2, 1, t)];
           break;
-        case 8: // II型
-          this.blocks = [new Block(0, 1, t), new Block(0, 2, t), new Block(2, 1, t), new Block(2, 2, t)];
+        case 8: // V型
+          this.blocks = [new Block(0, 1, t), new Block(1, 2, t), new Block(2, 1, t)];
           break;
         case 9: // .型
           this.blocks = [new Block(1, 1, t)];
