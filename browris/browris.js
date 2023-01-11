@@ -3,12 +3,20 @@
  * host: (any)
  */
 (function() {
-  let BLOCK_SIZE =  16; // ブロックサイズ(px)
-  let SPPED      = 500; // 落下スピード(ms)
-  let BLOCK_NUM  =   0; // ブロック連番
-  let COLS_COUNT;       // 列ブロック数
-  let ROWS_COUNT;       // 行ブロック数
-  let CLEAR_LINES =  0; // クリア行数
+  let BLOCK_SIZE  =  16; // ブロックサイズ(px)
+  let SPPED       = 500; // 落下スピード(ms)
+  let BLOCK_NUM   =   0; // ブロック連番
+  let CLEAR_LINES =   0; // クリア行数
+  let COLS_COUNT;        // 列ブロック数
+  let ROWS_COUNT;        // 行ブロック数
+  let EX_MODE   = false; // 拡張モード
+  let AUTO_MODE = false; // 自動モード
+
+  // 次ミノ表示座標
+  let NEXT_COORDINATE = {
+    'x': 0,
+    'y': 0,
+  };
 
   // ブロック色
   const BLOCK_COLORS = [
@@ -19,6 +27,10 @@
     '#FFA500', // L型
     '#00FF00', // S型
     '#FF0000', // Z型
+    // 拡張モード
+    '#40E0D0', // U型
+    '#FF33FF', // II型
+    '#FF99CC', // .型
   ];
 
   /**
@@ -51,6 +63,13 @@
       if ('b' in args) {
         BLOCK_SIZE = parseInt(args['b']);
       }
+      if ('e' in args) {
+        EX_MODE = args['e'] === '1';
+      }
+      if ('a' in args) {
+        AUTO_MODE = args['a'] === '1';
+      }
+      console.log('c,r,s,b,e,a', COLS_COUNT, ROWS_COUNT, SPPED, BLOCK_SIZE, EX_MODE, AUTO_MODE);
 
       // ブラウザ幅・高さ
       const width  = document.documentElement.clientWidth;
@@ -65,6 +84,10 @@
         ROWS_COUNT = Math.floor(height  / BLOCK_SIZE);
       }
       console.log('COLS_COUNT, ROWS_COUNT', COLS_COUNT, ROWS_COUNT);
+
+      // 次ミノ表示座標
+      NEXT_COORDINATE['x'] = width - 4.5 * BLOCK_SIZE - 10;
+      NEXT_COORDINATE['y'] = 5;
     }
 
     /**
@@ -79,7 +102,7 @@
                   + '  top:0;'
                   + '  left:0;'
                   + '  display:flex;'
-                  + '  justify-content:flex-end;'
+                  + '  justify-content:flex-start;'
                   + '  align-items:start;'
                   + '  width:100vw;'
                   + '  height:100vh;'
@@ -99,22 +122,18 @@
                   + '</style>'
                   + '<div class="info-modal-window" id="info-modal" aria-hidden="true">'
                   + '  <div class="content">'
-                  + '    <p>'
                   + '    ' + COLS_COUNT + ' x ' + ROWS_COUNT + '<br />'
                   + '    CL:<span id="clear-lines">0</span>'
-                  + '    </p>'
-                  + '    <p id="next-block">'
-                  + '    </p>'
                   + '  </div>'
                   + '</div>';
       document.querySelector('body').insertAdjacentHTML('beforeend', html);
 
       // ブロックSVG
       html = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
-           + ' style="display:none;" width="16px" height="16px">'
+           + ' style="display:none;">'
            + '<symbol id="orgblock" viewbox="0 0 16 16">'
            + '<g>'
-           + '<rect x="0" y="0" width="16" height="16" />'
+           + '<rect x="0" y="0" width="15" height="15" />'
            + '</g>'
            + '</symbol>'
            + '</svg>';
@@ -122,7 +141,7 @@
 
       // 次ブロック背景SVG
       html = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
-           + ' style="display:none;" width="16px" height="16px">'
+           + ' style="display:none;">'
            + '<symbol id="orgbg" viewbox="0 0 16 16">'
            + '<g>'
            + '<rect x="0" y="0" width="16" height="16" />'
@@ -173,13 +192,12 @@
      */
     nextBg()
     {
-      const w = 4.5 * BLOCK_SIZE;
-      const h = 4.5 * BLOCK_SIZE;
+      const nextSize = 4.5 * BLOCK_SIZE;
 
-      // TODO: 右側に移動(スクロールバーを考慮する)
       document.querySelector('body').insertAdjacentHTML('beforeend',
-          '<svg viewBox="0 0 ' + w + ' ' + h + '"'
-        + ' style="top: 5px; left: 5px; width: ' + w + 'px; height: ' + h + 'px;'
+          '<svg viewBox="0 0 ' + nextSize + ' ' + nextSize + '"'
+        + ' style="top: ' + NEXT_COORDINATE['y'] + 'px; left: ' + NEXT_COORDINATE['x'] + 'px;'
+        + ' width: ' + nextSize + 'px; height: ' + nextSize + 'px;'
         + ' opacity: 0.9; position: fixed; z-index: 10000; fill: #706D6D;'
         + ' display: inline-block;">'
         + '<use xlink:href="#orgbg"></use>'
@@ -192,13 +210,11 @@
      */
     popMino()
     {
-      console.log('Game.popMino');
+      // console.log('Game.popMino');
 
       this.mino = this.nextMino ?? new Mino();
-      console.log('this.mino', this.mino);
       this.mino.spawn();
       this.nextMino = new Mino();
-      console.log('this.nextMino', this.nextMino);
 
       // ゲームオーバー判定
       if (!this.valid(0, 1)) {
@@ -212,7 +228,7 @@
      */
     dropMino()
     {
-      console.log('Game.dropMino', this.mino);
+      // console.log('Game.dropMino', this.mino);
 
       if (this.valid(0, 1)) {
         this.mino.y++;
@@ -221,7 +237,7 @@
 
       } else {
         // Minoを固定する（座標変換してFieldに渡す）
-        console.log('Minoを固定', this.mino.blocks);
+        // console.log('Minoを固定', this.mino.blocks);
         this.mino.blocks.forEach(e => {
           e.x += this.mino.x
           e.y += this.mino.y
@@ -257,6 +273,10 @@
      */
     setKeyEvent()
     {
+      if (AUTO_MODE) {
+        return;
+      }
+
       document.onkeydown = function(e) {
         switch(e.keyCode)
         {
@@ -355,33 +375,36 @@
      */
     drawNext()
     {
-      // TODO: ブラウザの幅(スクロールバーに注意)、次ミノ領域のマージンを考慮して基準位置を決める
       // タイプごとに余白を調整して、中央に表示
       let offsetX = 0
       let offsetY = 0
 
       switch(this.type){
-        case 0:
-          offsetX = 0.5
-          offsetY = 0
+        case 0: // I型
+          offsetX =  0.25;
+          offsetY = -0.2;
           break;
-        case 1:
-          offsetX = 0.5
-          offsetY = 0.5
+        case 1: // O型
+          offsetX = 0.35;
+          offsetY = 0.3;
+          break;
+        case 9: // .型
+          offsetX = 0.9;
+          offsetY = 0.7;
           break;
         default:
-          offsetX = 1
-          offsetY = 0.5
+          offsetX = 0.9;
+          offsetY = 0.3;
           break;
       }
 
-      this.svg.style.left    = Math.floor((this.x + offsetX) * BLOCK_SIZE) + 'px';
-      this.svg.style.top     = Math.floor((this.y + offsetY) * BLOCK_SIZE) + 'px';
+      this.svg.style.left    = NEXT_COORDINATE['x'] + Math.floor((this.x + offsetX) * BLOCK_SIZE) + 'px';
+      this.svg.style.top     = NEXT_COORDINATE['y'] + Math.floor((this.y + offsetY) * BLOCK_SIZE) + 'px';
       this.svg.style.display = 'inline-block';
     }
 
     /**
-     * SVG削除(インスタンスを削除する前に実行する)
+     * SVG削除(インスタンス削除前に実行)
      */
     remove()
     {
@@ -396,7 +419,10 @@
   {
     constructor()
     {
-      this.type = Math.floor(Math.random() * 7);
+      // ミノ型決定
+      const tcnt = EX_MODE ? 10 : 7;
+      this.type = Math.floor(Math.random() * tcnt);
+
       this.initBlocks();
     }
 
@@ -417,7 +443,7 @@
           this.blocks = [new Block(1, 1, t), new Block(0, 2, t), new Block(1, 2, t), new Block(2, 2, t)];
           break;
         case 3: // J型
-          this.blocks = [new Block(1, 1, t), new Block(0, 2, t), new Block(1, 2, t), new Block(2, 2, t)];
+          this.blocks = [new Block(0, 1, t), new Block(0, 2, t), new Block(1, 2, t), new Block(2, 2, t)];
           break;
         case 4: // L型
           this.blocks = [new Block(2, 1, t), new Block(0, 2, t), new Block(1, 2, t), new Block(2, 2, t)];
@@ -428,6 +454,15 @@
         case 6: // Z型
           this.blocks = [new Block(0, 1, t), new Block(1, 1, t), new Block(1, 2, t), new Block(2, 2, t)];
           break;
+        case 7: // U型
+          this.blocks = [new Block(0, 1, t), new Block(0, 2, t), new Block(1, 2, t), new Block(2, 2, t), new Block(2, 1, t)];
+          break;
+        case 8: // II型
+          this.blocks = [new Block(0, 1, t), new Block(0, 2, t), new Block(2, 1, t), new Block(2, 2, t)];
+          break;
+        case 9: // .型
+          this.blocks = [new Block(1, 1, t)];
+          break;
       };
     }
 
@@ -436,8 +471,14 @@
      */
     spawn()
     {
-      // TODO: 横位置ランダムに
-      this.x = COLS_COUNT / 2 - 2
+      if (AUTO_MODE) {
+        // 自動モードはランダム
+        this.x = Math.floor(Math.random() * (COLS_COUNT - 3));
+      } else {
+        // 中央
+        this.x = COLS_COUNT / 2 - 2
+      }
+
       this.y = -3
     }
 
@@ -456,7 +497,6 @@
      */
     drawNext()
     {
-      // TODO: 次ミノモーダルの位置を考慮
       this.blocks.forEach(block => {
         block.drawNext()
       })
