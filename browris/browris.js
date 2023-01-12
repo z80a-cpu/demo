@@ -4,13 +4,14 @@
  */
 (function() {
   let BLOCK_SIZE  =  16; // ブロックサイズ(px)
-  let SPPED       = 500; // 落下スピード(ms)
+  let SPEED       = 500; // 落下スピード(ms)
   let BLOCK_NUM   =   0; // ブロック連番
   let CLEAR_LINES =   0; // クリア行数
+  let WALL        =   0; // 壁数
   let COLS_COUNT;        // 列ブロック数
   let ROWS_COUNT;        // 行ブロック数
   let EX_MODE   = false; // 拡張モード
-  let AUTO_MODE = false; // 自動モード
+  let RAND_MODE = false; // ランダム位置モード
 
   // 次ミノ表示座標
   let NEXT_COORDINATE = {
@@ -58,22 +59,24 @@
         ROWS_COUNT = parseInt(args['r']);
       }
       if ('s' in args) {
-        SPPED = parseInt(args['s']);
+        SPEED = parseInt(args['s']);
       }
       if ('b' in args) {
         BLOCK_SIZE = parseInt(args['b']);
+      }
+      if ('w' in args) {
+        WALL = parseInt(args['w']);
       }
       if ('e' in args) {
         EX_MODE = args['e'] === '1';
       }
       if ('a' in args) {
-        AUTO_MODE = args['a'] === '1';
+        RAND_MODE = args['a'] === '1';
       }
 
       // ブラウザ幅・高さ
       const width  = document.documentElement.clientWidth;
       const height = document.documentElement.clientHeight;
-      console.log('w, h', width, height);
 
       // ブロック数
       if (!COLS_COUNT) {
@@ -83,7 +86,13 @@
         ROWS_COUNT = Math.floor(height  / BLOCK_SIZE);
       }
 
-      console.log('c,r,s,b,e,a', COLS_COUNT, ROWS_COUNT, SPPED, BLOCK_SIZE, EX_MODE, AUTO_MODE);
+      console.log('ブラウザ表示域(px)', width + 'x' + height);
+      console.log('ブロック(列x行)', COLS_COUNT + 'x' + ROWS_COUNT);
+      console.log('落下スピード(msec)', SPEED);
+      console.log('ブロックサイズ(px)', BLOCK_SIZE);
+      console.log('デフォルト壁(行)', WALL);
+      console.log('拡張モード', EX_MODE ? 'ON' : 'OFF');
+      console.log('ランダム位置モード', RAND_MODE ? 'ON' : 'OFF');
 
       // 次ミノ表示座標
       NEXT_COORDINATE['x'] = width - 4.5 * BLOCK_SIZE - 10;
@@ -97,7 +106,7 @@
     {
       // 情報モーダル
       let html = '<style type="text/css">'
-                  + '.info-modal-window {'
+                  + '.info-area-window {'
                   + '  position:fixed;'
                   + '  top:0;'
                   + '  left:0;'
@@ -110,7 +119,8 @@
                   + '  backdrop-filter:blur(5px);'
                   + '  z-index:10000;'
                   + '}'
-                  + '.info-modal-window .content {'
+                  + '.info-area-window .content {'
+                  + '  border-radius: 4px;'
                   + '  position:relative;'
                   + '  box-sizing:border-box;'
                   + '  margin:5px;'
@@ -120,12 +130,86 @@
                   + '  text-align:right;'
                   + '}'
                   + '</style>'
-                  + '<div class="info-modal-window" id="info-modal" aria-hidden="true">'
+                  + '<div class="info-area-window" id="info-area" aria-hidden="true">'
                   + '  <div class="content">'
                   + '    ' + COLS_COUNT + 'x' + ROWS_COUNT + '<br />'
                   + '    CL:<span id="clear-lines">0</span>'
                   + '  </div>'
                   + '</div>';
+      document.querySelector('body').insertAdjacentHTML('beforeend', html);
+
+      html = '<style type="text/css">'
+           + '.result-modal {'
+           + '  width:100vw;'
+           + '  height:100vh;'
+           + '  position:fixed;'
+           + '  inset:0;'
+           + '  margin:auto;'
+           + '  display:flex;'
+           + '  visibility:hidden;'
+           + '  align-items: center;'
+           + '  justify-content:center;'
+           + '  z-index:11000;'
+           + '}'
+           + '.result-modal .content {'
+           + '  border-radius: 4px;'
+           + '  position:relative;'
+           + '  box-sizing:border-box;'
+           + '  margin:5px;'
+           + '  padding:5px;'
+           + '  color:#000000;'
+           + '  background-color:#FFFFFF;'
+           + '  text-align:center;'
+           + '}'
+           + '.result-modal .content h4 {'
+           + '  margin:5px;'
+           + '}'
+           + '.result-modal .content .ttl {'
+           + '  text-align:left;'
+           + '}'
+           + '.result-modal .content .cntt {'
+           + '  text-align:right;'
+           + '}'
+           + '</style>'
+           + '<div class="result-modal" id="result-modal" aria-hidden="true">'
+           + '  <div class="content">'
+           + '    <h4>browris</h4>'
+           + '    <table border="0">'
+           + '      <tr>'
+           + '        <td class="ttl">画面サイズ</td>'
+           + '        <td class="cntt" id="bscreen">100x50</td>'
+           + '      </tr>'
+           + '      <tr>'
+           + '        <td class="ttl">ブロックサイズ</td>'
+           + '        <td class="cntt" id="bsize"></td>'
+           + '      </tr>'
+           + '      <tr>'
+           + '        <td class="ttl">デフォルト壁</td>'
+           + '        <td class="cntt" id="bwall"></td>'
+           + '      </tr>'
+           + '      <tr>'
+           + '        <td class="ttl">拡張モード</td>'
+           + '        <td class="cntt" id="ex-mode"></td>'
+           + '      </tr>'
+           + '      <tr>'
+           + '        <td class="ttl">ランダムモード</td>'
+           + '        <td class="cntt" id="rand-mode"></td>'
+           + '      </tr>'
+           + '      <tr>'
+           + '        <td class="ttl">スピード(ms)</td>'
+           + '        <td class="cntt" id="bspeed"></td>'
+           + '      </tr>'
+           + '      <tr>'
+           + '        <td class="ttl">経過時間</td>'
+           + '        <td class="cntt" id="belapsed"></td>'
+           + '      </tr>'
+           + '      <tr>'
+           + '        <td class="ttl">クリアライン数</td>'
+           + '        <td class="cntt" id="clines"></td>'
+           + '      </tr>'
+           + '    </table>'
+           + '  </div>'
+           + '</div>';
       document.querySelector('body').insertAdjacentHTML('beforeend', html);
 
       // ブロックSVG
@@ -159,6 +243,8 @@
   {
     constructor()
     {
+      console.log('ゲームスタート');
+
       Setup.initParams();
       Setup.init();
 
@@ -173,6 +259,11 @@
       // フィールドとミノの初期化
       this.field = new Field();
 
+      // デフォルト壁
+      if (WALL > 0) {
+        this.setWall();
+      }
+
       // 最初のミノを読み込み
       this.popMino();
 
@@ -183,10 +274,41 @@
 
       // 落下処理
       clearInterval(this.timer);
-      this.timer = setInterval(() => this.dropMino(), SPPED);
+      this.timer = setInterval(() => this.dropMino(), SPEED);
 
       // キーボードイベントの登録
       this.setKeyEvent();
+    }
+
+    /**
+     * デフォルト壁
+     */
+    setWall()
+    {
+      // 最下部から1行ずつブロックを生成する
+      for (let i = ROWS_COUNT - 1; i >= ROWS_COUNT - WALL; i--) {
+        // ブロック生成
+        let wblocks = [];
+
+        // 非ブロック数(1-2個)
+        const nCnt = 1 + Math.floor(Math.random() * 2);
+
+        // 非ブロック位置
+        let nBlocks = [];
+        for (let j = 0; j < nCnt; j++) {
+          nBlocks.push(Math.floor(Math.random() * COLS_COUNT));
+        }
+
+        for (let j = 0; j < COLS_COUNT; j++) {
+          if (!nBlocks.includes(j)) {
+            const block = new Block(j, i, Math.floor(Math.random() * 10));
+            block.draw();
+            wblocks.push(block);
+          }
+        }
+
+        this.field.blocks = this.field.blocks.concat(wblocks);
+      }
     }
 
     /**
@@ -231,27 +353,42 @@
     {
       clearInterval(this.timer);
 
+      console.log('ゲームオーバー');
+
       // 経過時間
       const endTime = new Date();
       const datet   = parseInt((endTime.getTime() - this.startTime.getTime()) / 1000);
       const hour    = parseInt(datet / 3600);
       const min     = parseInt((datet / 60) % 60);
       const sec     = datet % 60;
-      const elapsed = hour + ':' + min + ':' + sec;
-      console.log('ゲームオーバー', elapsed);
+      const elapsed = hour + ':' + ('00' + min).slice(-2) + ':' + ('00' + sec).slice(-2);
 
-      // TODO: 終了処理(結果モーダル表示)
+      const bscreen  = COLS_COUNT + 'x' + ROWS_COUNT;
+      const exMode   = EX_MODE   ? 'ON' : 'OFF';
+      const randMode = RAND_MODE ? 'ON' : 'OFF';
 
+      document.getElementById('bscreen').textContent = bscreen;
+      document.getElementById('bsize').textContent = BLOCK_SIZE;
+      document.getElementById('bwall').textContent = WALL;
+      document.getElementById('ex-mode').textContent = exMode;
+      document.getElementById('rand-mode').textContent = randMode;
+      document.getElementById('bspeed').textContent = SPEED;
+      document.getElementById('belapsed').textContent = elapsed;
+      document.getElementById('clines').textContent = CLEAR_LINES.toLocaleString();
+
+      console.log('経過時間:' + elapsed);
+      console.log('クリアライン数:' + CLEAR_LINES.toLocaleString());
+
+      // 結果モーダル表示
+      const resultModal = document.getElementById('result-modal');
+      resultModal.style.visibility = 'visible';
     }
-
 
     /**
      * ミノの落下処理
      */
     dropMino()
     {
-      // console.log('Game.dropMino', this.mino);
-
       if (this.valid(0, 1)) {
         this.mino.y++;
         this.mino.draw();
@@ -259,7 +396,6 @@
 
       } else {
         // Minoを固定する（座標変換してFieldに渡す）
-        // console.log('Minoを固定', this.mino.blocks);
         this.mino.blocks.forEach(e => {
           e.x += this.mino.x
           e.y += this.mino.y
@@ -295,10 +431,6 @@
      */
     setKeyEvent()
     {
-      if (AUTO_MODE) {
-        return;
-      }
-
       document.onkeydown = function(e) {
         switch(e.keyCode)
         {
@@ -341,7 +473,7 @@
       BLOCK_NUM = BLOCK_NUM > 9999999999 ? 1 : BLOCK_NUM;
       this.id = ('0000000000' + BLOCK_NUM).slice(-10);
 
-      // 描画しないとき(ゲームオーバー判定時)はタイプを指定しない
+      // 描画しないときはタイプを指定しない
       if (type >= 0) {
         this.setType(type);
       }
@@ -368,7 +500,7 @@
     }
 
     /**
-     * 落下中Minoの描写
+     * Minoの表示
      * Minoに属するときは、Minoの位置をオフセットに指定
      * Fieldに属するときは、(0,0)を起点とするので不要
      */
@@ -442,9 +574,21 @@
     constructor()
     {
       // ミノ型決定
-      const tcnt = EX_MODE ? 10 : 7;
-      this.type = Math.floor(Math.random() * tcnt);
+      if (EX_MODE) {
+        // 拡張モード(拡張ミノは10%)
+        if (Math.floor(Math.random() * 100) < 10) {
+          // 拡張ミノ(各3.33%)
+          this.type = 7 + Math.floor(Math.random() * 3);
+        } else {
+          // 通常ミノ(各12.86%)
+          this.type = Math.floor(Math.random() * 7);
+        }
+      } else {
+        // 通常モード(各14.29%)
+        this.type = Math.floor(Math.random() * 7);
+      }
 
+      // ミノ生成
       this.initBlocks();
     }
 
@@ -493,12 +637,12 @@
      */
     spawn()
     {
-      if (AUTO_MODE) {
-        // 自動モードはランダム
+      if (RAND_MODE) {
+        // ランダム位置モードはランダム
         this.x = Math.floor(Math.random() * (COLS_COUNT - 3));
       } else {
         // 中央
-        this.x = COLS_COUNT / 2 - 2
+        this.x = Math.floor(COLS_COUNT / 2) - 2
       }
 
       this.y = -3
